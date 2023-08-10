@@ -1,18 +1,21 @@
 import numpy as np
 import cv2
 import sys
+from create_handler import create_handler
 
 from detect_wells import detect_wells
+from create_emitter import create_emitter
 from utils import clamp_frame_size, draw_rectangle
 
 TEXT_COLOR = (0, 255, 0)
 TRACKER_COLOR = (255, 0, 0)
 FONT = cv2.FONT_HERSHEY_SIMPLEX
-# VIDEO_SOURCE = "videos/Fly.mp4"
-VIDEO_SOURCE = "videos/DoubleFly.mp4"
+VIDEO_SOURCE = "videos/Fly.mp4"
+# VIDEO_SOURCE = "videos/DoubleFly.mp4"
 
 BGS_TYPES = ["GMG", "MOG", "MOG2", "KNN", "CNT"]
-BGS_TYPE = BGS_TYPES[2]
+# choose best one to track small objects like flies
+BGS_TYPE = "KNN"
 
 
 # all of this motion detection stuff is taken straight from the udemy tutorial
@@ -72,7 +75,7 @@ bg_subtractor = getBGSubtractor(BGS_TYPE)
 minArea = 250
 
 
-def find_well(wells, contour):
+def match_coords(wells, contour):
     M = cv2.moments(contour)
     if M["m00"] == 0:
         return
@@ -81,48 +84,59 @@ def find_well(wells, contour):
 
     # we could make this a bit more efficient by checking the boundaries of each grid / row
     # before checking each well, but I doubt it would make a huge difference
-    for grid in wells:
-        for row in grid:
-            for well in row:
+    for i, grid in enumerate(wells):
+        for j, row in enumerate(grid):
+            for k, well in enumerate(row):
                 start_point = well[0]
                 end_point = well[1]
                 if (
                     start_point[0] <= cx <= end_point[0]
                     and start_point[1] <= cy <= end_point[1]
                 ):
-                    return well
+                    return (i, j, k, well)
 
 
 def main():
     wells = detect_wells(VIDEO_SOURCE)
-    while cap.isOpened:
-        ok, frame = cap.read()
-        if not ok:
-            print("Finished processing the video")
-            break
-        frame = clamp_frame_size(frame)
+    tracks = []
+    handler, cancel = create_handler(wells, tracks)
+    emitter = create_emitter(wells, handler)
 
-        bg_mask = bg_subtractor.apply(frame)
-        bg_mask = getFilter(bg_mask, "combine")
-        bg_mask = cv2.medianBlur(bg_mask, 5)
+    try:
+        while cap.isOpened:
+            ok, frame = cap.read()
+            if not ok:
+                print("Finished processing the video")
+                break
+            frame = clamp_frame_size(frame)
+            frame_count = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
-        (countours, hierarchy) = cv2.findContours(
-            bg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
-        for contour in countours:
-            well = find_well(wells, contour)
-            if well:
-                draw_rectangle(well, frame)
-            else:
-                # draw out-of-bounds contours for debugging
-                cv2.drawContours(frame, [contour], -1, (255, 0, 0), 1)
+            bg_mask = bg_subtractor.apply(frame)
+            bg_mask = getFilter(bg_mask, "closing")
+            bg_mask = cv2.medianBlur(bg_mask, 5)
 
-        result = cv2.bitwise_and(frame, frame, mask=bg_mask)
-        cv2.imshow("Frame", frame)
-        cv2.imshow("Mask", result)
+            (countours, hierarchy) = cv2.findContours(
+                bg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            )
+            for contour in countours:
+                coords = match_coords(wells, contour)
+                if coords:
+                    (i, j, k, well) = coords
+                    emitter((i, j, k), contour, frame_count)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+            result = cv2.bitwise_and(frame, frame, mask=bg_mask)
+            for track in tracks:
+                # draw in red
+                cv2.circle(frame, track, 1, (0, 0, 255), -1)
+            cv2.imshow("Frame", frame)
+            cv2.imshow("Mask", result)
+
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                cancel()
+                break
+    except:
+        cancel()
+        raise
 
 
 main()

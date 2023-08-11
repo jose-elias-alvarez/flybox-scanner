@@ -44,11 +44,10 @@ def create_emitter(wells, callback):
                 return
         # calculate distance between contours
         distance = cv2.matchShapes(contour, last_contour, cv2.CONTOURS_MATCH_I1, 0)
-        if distance > MIN_DISTANCE:
-            e = MotionEvent(box, row, col, contour, distance, frame_count)
-            callback(e)
+        e = MotionEvent(box, row, col, contour, distance, frame_count)
+        callback(e)
 
-            matrix[box][row][col] = (contour, frame_count)
-            return e
+        matrix[box][row][col] = (contour, frame_count)
+        return e
 
     return emitter

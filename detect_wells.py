@@ -4,24 +4,23 @@ import numpy as np
 from utils import clamp_frame_size, draw_circle, show_frame
 
 MAX_ITERATIONS = 100
-MIN_CIRCLES = 4
-MAX_CIRCLES = 128
+# NOTE: these values are used for circle detection
+# and don't correspond to the actual number of wells
+MAX_CIRCLES = 96 * 2
+# since hough circles is so awful,
+# lowering this will lead to more false positives
+# and slow down the detection phase
+MIN_CIRCLES = 12
+
+CONVERGENCE_THRESHOLD = 0.0005
 
 
-def get_sample_frame(source):
-    cap = cv2.VideoCapture(source)
+def get_sample_frame(cap):
     clahe = cv2.createCLAHE(clipLimit=4, tileGridSize=(8, 8))
-    # sample a random frame from first 100 frames
-    # why are some frames bad and some frames good?
-    # no idea, but this set of parameters means only about 1/100 frames fail
-    sample_frames = []
-    for _ in range(min(100, int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))):
-        ok, sample_frame = cap.read()
-        if not ok:
-            raise Exception("Could not read video source")
-        sample_frames.append(sample_frame)
+    ok, sample_frame = cap.read()
+    if not ok:
+        raise Exception("No frames detected")
 
-    sample_frame = sample_frames[np.random.randint(0, len(sample_frames))]
     sample_frame = clamp_frame_size(sample_frame)
     processed_frame = cv2.cvtColor(sample_frame, cv2.COLOR_BGR2GRAY)
     processed_frame = clahe.apply(processed_frame)
@@ -32,6 +31,9 @@ def get_sample_frame(source):
 
 
 def get_approximate_average_radius(frame, original_frame):
+    # use conservative values
+    param1 = 40
+    param2 = 50
     # we start by assuming that the frame contains at most MAX_CIRCLES
     # and at least MIN_CIRCLES
     max_radius = int(min(frame.shape[0], frame.shape[1]) / MIN_CIRCLES)
@@ -50,8 +52,8 @@ def get_approximate_average_radius(frame, original_frame):
             cv2.HOUGH_GRADIENT,
             1,
             min_dist,
-            param1=15,
-            param2=40,  # stay conservative here
+            param1=param1,
+            param2=param2,
             minRadius=min_radius,
             maxRadius=max_radius,
         )
@@ -59,8 +61,7 @@ def get_approximate_average_radius(frame, original_frame):
             continue
         average_radius = np.average(detected[0, :, 2])
         # if our new average is (almost) the same as the old average, we're done
-        # interestingly, lowering this threshold doesn't really affect speed
-        if abs(average_radius - last_average_radius) < 0.005:
+        if abs(average_radius - last_average_radius) < CONVERGENCE_THRESHOLD:
             break
         # if our new average is larger than the old average,
         # we most likely have a bad detection,
@@ -86,6 +87,7 @@ def get_approximate_average_radius(frame, original_frame):
 
 
 def detect_circles(frame, original_frame):
+    # TODO: check for infinity
     approximate_average_radius = get_approximate_average_radius(frame, original_frame)
     # now that we have an approximate radius, we can keep our radius tighter
     min_radius = int(approximate_average_radius * 0.85)
@@ -189,8 +191,8 @@ def detect_circles(frame, original_frame):
     return boxes
 
 
-def detect_wells(source):
-    (frame, original_frame) = get_sample_frame(source)
+def detect_wells(cap):
+    (frame, original_frame) = get_sample_frame(cap)
     boxes = detect_circles(frame, original_frame)
 
     # light variable naming inconsistency

@@ -71,6 +71,8 @@ def getBGSubtractor(BGS_TYPE):
 
 
 cap = cv2.VideoCapture(VIDEO_SOURCE)
+# cap = cv2.VideoCapture(0)
+
 bg_subtractor = getBGSubtractor(BGS_TYPE)
 minArea = 250
 
@@ -98,6 +100,7 @@ def match_coords(wells, contour):
 
 def main():
     wells = detect_wells(VIDEO_SOURCE)
+    wells = detect_wells(cap)
     tracks = []
     handler, cancel = create_handler(wells, tracks)
     emitter = create_emitter(wells, handler)

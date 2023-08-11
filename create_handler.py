@@ -1,5 +1,4 @@
-import asyncio
-import time
+from threading import Timer
 
 
 def create_matrix(wells):
@@ -16,28 +15,27 @@ def create_matrix(wells):
 
 def create_handler(wells, tracks):
     matrix = create_matrix(wells)
-    # track last flush time for debugging
-    last_flush = deadline = time.time()
+    t = None
 
-    async def flush():
-        nonlocal matrix, tracks
+    def flush():
+        nonlocal matrix
+        nonlocal tracks
         matrix = create_matrix(wells)
-        tracks.clear()
-        now = time.time()
-        nonlocal last_flush
-        print(f"Flushed at {now - last_flush} seconds")
-        last_flush = now
+        # remove all array items without reassignment
+        del tracks[:]
+        start_timer()
 
-    async def start_timer():
-        nonlocal deadline
-        while True:
-            deadline += 5
-            now = time.time()
-            sleep = max(0, deadline - now)
-            await asyncio.sleep(sleep)
-            await flush()
+    def start_timer():
+        nonlocal t
+        t = Timer(5, flush)
+        t.start()
 
-    asyncio.ensure_future(start_timer())
+    def cancel_timer():
+        nonlocal t
+        if t is not None:
+            t.cancel()
+
+    start_timer()
 
     def handler(e):
         box, row, col, distance = e.box, e.row, e.well, e.distance
@@ -45,4 +43,4 @@ def create_handler(wells, tracks):
         center = tuple(e.contour[0][0])
         tracks.append(center)
 
-    return handler
+    return handler, cancel_timer

@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import sys
-import asyncio
 from create_handler import create_handler
 
 from detect_wells import detect_wells
@@ -101,50 +100,48 @@ def match_coords(wells, contour):
                     return (i, j, k, well)
 
 
-async def main():
+def main():
+    wells = detect_wells(VIDEO_SOURCE)
     wells = detect_wells(cap)
     tracks = []
-    handler = create_handler(wells, tracks)
+    handler, cancel = create_handler(wells, tracks)
     emitter = create_emitter(wells, handler)
-    frame_count = 0
 
-    while cap.isOpened:
-        await asyncio.sleep(0)
-        ok, frame = cap.read()
-        if not ok:
-            print("Finished processing the video")
-            break
-        frame = clamp_frame_size(frame)
-        frame_count += 1
+    try:
+        while cap.isOpened:
+            ok, frame = cap.read()
+            if not ok:
+                print("Finished processing the video")
+                break
+            frame = clamp_frame_size(frame)
+            frame_count = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
-        bg_mask = bg_subtractor.apply(frame)
-        bg_mask = getFilter(bg_mask, "closing")
-        bg_mask = cv2.medianBlur(bg_mask, 5)
+            bg_mask = bg_subtractor.apply(frame)
+            bg_mask = getFilter(bg_mask, "closing")
+            bg_mask = cv2.medianBlur(bg_mask, 5)
 
-        (countours, hierarchy) = cv2.findContours(
-            bg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
-        for contour in countours:
-            coords = match_coords(wells, contour)
-            if coords:
-                (i, j, k, well) = coords
-                emitter((i, j, k), contour, frame_count)
-                # draw contour on frame
-                cv2.drawContours(frame, [contour], 0, (0, 255, 0), 1)
-                # also draw well
-                cv2.rectangle(
-                    frame,
-                    (int(well[0][0]), int(well[0][1])),
-                    (int(well[1][0]), int(well[1][1])),
-                    (0, 255, 0),
-                )
+            (countours, hierarchy) = cv2.findContours(
+                bg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            )
+            for contour in countours:
+                coords = match_coords(wells, contour)
+                if coords:
+                    (i, j, k, well) = coords
+                    emitter((i, j, k), contour, frame_count)
 
-        for track in tracks:
-            cv2.circle(frame, track, 1, (0, 0, 255), -1)
-        cv2.imshow("Frame", frame)
+            result = cv2.bitwise_and(frame, frame, mask=bg_mask)
+            for track in tracks:
+                # draw in red
+                cv2.circle(frame, track, 1, (0, 0, 255), -1)
+            cv2.imshow("Frame", frame)
+            cv2.imshow("Mask", result)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                cancel()
+                break
+    except:
+        cancel()
+        raise
 
 
-asyncio.run(main())
+main()

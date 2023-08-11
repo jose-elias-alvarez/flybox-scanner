@@ -63,7 +63,9 @@ def getBGSubtractor(BGS_TYPE):
     if BGS_TYPE == "MOG2":
         return cv2.createBackgroundSubtractorMOG2()
     if BGS_TYPE == "KNN":
-        return cv2.createBackgroundSubtractorKNN()
+        return cv2.createBackgroundSubtractorKNN(
+            history=1000, dist2Threshold=200, detectShadows=False
+        )
     if BGS_TYPE == "CNT":
         return cv2.bgsegm.createBackgroundSubtractorCNT()
     print("Invalid detector")

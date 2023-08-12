@@ -229,21 +229,20 @@ class GridDetector:
             # case 3: item is close enough to last item, so we're still in the same row
             row.append(item)
 
-        # next, we want to convert each raw element into a class instance
-        # and perform some basic validation on the way
+        # next, we sort each row on the x axis
+        for row in grid:
+            row.sort(key=lambda item: item[0][0])
+
+        # finally, we want to convert each raw element into a class instance
         for row_index, row in enumerate(grid):
             # validate that each row contains the same number of items
             if len(row) != len(grid[0]):
                 raise Exception(
                     f"Invalid number of items in row (expected {len(grid[0])}, got {len(row)})"
                 )
-            for item_index, item in enumerate(row):
-                row[item_index] = Item(item, (row_index, item_index))
+            for col_index, item in enumerate(row):
+                row[col_index] = Item(item, (row_index, col_index))
             grid[row_index] = Row(row)
         grid = Grid(grid)
-
-        # finally, we sort each row on the x axis
-        for row in grid.rows:
-            row.items.sort(key=lambda item: item.start_point[0])
 
         return grid

@@ -4,6 +4,8 @@ from detection.frame import crop
 from detection.grids import GridDetector
 from handlers.debug import debug_handler
 from handlers.frame import FrameHandler
+from handlers.resolution import ResolutionHandler
+from handlers.to_file import ToFileHandler
 
 
 def get_frame_generator(cap):
@@ -18,8 +20,8 @@ def get_frame_generator(cap):
 
 
 def main():
-    # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("videos/DoubleFly.mp4")
+    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture("videos/Fly.mp4")
     frame_generator = get_frame_generator(cap)
 
     # in the actual app, we'll have this as a separate step
@@ -28,10 +30,20 @@ def main():
     grid_detector = GridDetector(first_frame)
     grids, dimensions = grid_detector.detect()
 
-    frame_handler = FrameHandler(grids, dimensions, debug_handler)
+    to_file_handler = ToFileHandler(dimensions)
+    resolution_handler = ResolutionHandler(5, to_file_handler)
+    resolution_handler.start()
+
+    def wrapped_handler(e):
+        resolution_handler.handle(e)
+        debug_handler(e)
+
+    frame_handler = FrameHandler(grids, dimensions, wrapped_handler)
     try:
         for frame, frame_count in frame_generator:
             frame_handler.handle(frame, frame_count)
+            if resolution_handler.error is not None:
+                raise resolution_handler.error
             cv2.imshow("Frame", frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
@@ -40,6 +52,7 @@ def main():
     finally:
         cap.release()
         cv2.destroyAllWindows()
+        resolution_handler.cancel()
 
 
 main()

@@ -220,7 +220,7 @@ class GridDetector:
             color = DEBUG_COLORS[grid_index % len(DEBUG_COLORS)]
             draw_rectangle((grid_start, grid_end), self.frame, color)
 
-        show_frame(self.frame)
+        show_frame(self.frame, 500)
 
         dimensions = (
             len(grids),

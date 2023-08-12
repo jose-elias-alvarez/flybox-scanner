@@ -1,7 +1,10 @@
+from typing import List, Tuple
+
 import cv2
 import numpy as np
 
-from utils import draw_circle, draw_rectangle, show_frame
+from custom_types import ContourBounds, Rectangle
+from utils import draw_circle, show_frame
 
 MAX_ITERATIONS = 100
 MAX_CIRCLES = 96 * 2
@@ -9,21 +12,90 @@ MIN_CIRCLES = 12
 
 CONVERGENCE_THRESHOLD = 0.0005
 
-# put in a bunch of nonstandard colors here please, like 9 or 10
-DEBUG_COLORS = (
-    (0, 0, 255),
-    (0, 255, 0),
-    (255, 0, 0),
-    (0, 255, 255),
-    (255, 0, 255),
-    (255, 255, 0),
-    (0, 0, 128),
-    (0, 128, 0),
-    (128, 0, 0),
-    (0, 128, 128),
-    (128, 0, 128),
-    (128, 128, 0),
-)
+
+class GridComponent:
+    def contains(self, contour_bounds: ContourBounds):
+        raise NotImplementedError()
+
+    @property
+    def bounds(self) -> Rectangle:
+        raise NotImplementedError()
+
+    def contains(self, contour_bounds: ContourBounds):
+        (x, y, w, h) = contour_bounds
+        (start_point, end_point) = self.bounds
+        return (
+            start_point[0] <= x <= end_point[0]
+            and start_point[1] <= y <= end_point[1]
+            and x + w <= start_point[0] + end_point[0]
+            and y + h <= start_point[1] + end_point[1]
+        )
+
+
+class Item(GridComponent):
+    def __init__(self, rectangle: Rectangle, coords: Tuple[int, int]):
+        self.start_point = rectangle[0]
+        self.end_point = rectangle[1]
+        self.coords = coords
+
+    @property
+    def bounds(self) -> Rectangle:
+        return (self.start_point, self.end_point)
+
+
+class Row(GridComponent):
+    def __init__(self, items: List[Item]):
+        self.items = items
+
+    def __len__(self):
+        return len(self.items)
+
+    @property
+    def bounds(self) -> Rectangle:
+        return (
+            (
+                self.items[0].start_point[0],
+                self.items[0].start_point[1],
+            ),
+            (
+                self.items[-1].end_point[0],
+                self.items[-1].end_point[1],
+            ),
+        )
+
+    def find_item(self, bounds: ContourBounds):
+        for item in self.items:
+            if item.contains(bounds):
+                return item
+        return None
+
+
+class Grid(GridComponent):
+    def __init__(self, rows: List[Row]):
+        self.rows = rows
+
+    @property
+    def bounds(self) -> Rectangle:
+        return (
+            (
+                self.rows[0].items[0].start_point[0],
+                self.rows[0].items[0].start_point[1],
+            ),
+            (
+                self.rows[-1].items[-1].end_point[0],
+                self.rows[-1].items[-1].end_point[1],
+            ),
+        )
+
+    def find_row(self, contour_bounds: ContourBounds):
+        for row in self.rows:
+            if row.contains(contour_bounds):
+                return row
+        return None
+
+    @property
+    def dimensions(self):
+        return (len(self.rows), len(self.rows[0].items))
 
 
 class GridDetector:
@@ -125,13 +197,10 @@ class GridDetector:
     def detect(self):
         circles = self.detect_circles()
         average_radius = np.average(circles[:, 2])
-        # our first goal: convert each detected circle into a rectangular grid item,
-        # and sort each item into a grid
-        grids = [[]]
-        # if a circle's x position is too far from the center of the previous circle,
-        # we'll know we've reached a new circle,
-        # so we start by sorting by x position
-        for x, y, radius in sorted(circles, key=lambda circle: circle[0]):
+        # first goal: convert each circle into a rectangular item
+        # and organize them into rows in a grid
+        grid = [[]]
+        for x, y, radius in sorted(circles, key=lambda circle: circle[1]):
             # lighting can cause variations beyond what we expect,
             # so we smooth out the radius using a weighted average
             radius = (radius * 0.25) + (average_radius * 0.75)
@@ -145,86 +214,36 @@ class GridDetector:
                     y + radius,
                 ),
             )
-            # case 1: no items in grid, so we can't make a comparison
-            last_grid = grids[-1]
-            if len(last_grid) == 0:
-                last_grid.append(item)
-                continue
-            # case 2: item is too far from last item on the x axis, so we're in a new grid
-            last_item = last_grid[-1]
-            distance = item[1][0] - last_item[1][0]
-            # this is sort of arbitrary and could need tweaking depending on actual grid dimensions
-            is_in_new_grid = distance > average_radius * 2.5
-            if is_in_new_grid:
-                grids.append([item])
-                continue
-            # case 3: item is close enough to last item, so we're still in the same grid
-            last_grid.append(item)
-
-        # our next goal is to organize each grid into rows
-        for i, grid in enumerate(grids):
-            # this time we'll use the y position to determine if we're in a new row
-            grid.sort(key=lambda item: item[0][1])
-            organized_grid = [[]]
-            for item in grid:
-                row = organized_grid[-1]
-                # case 1: no items in row yet, so we can't make a comparison
-                if len(row) == 0:
-                    row.append(item)
-                    continue
-                # case 2: item is too far from last item on the y axis, so we're in a new row
-                last_item = row[-1]
-                distance = item[1][1] - last_item[1][1]
-                is_in_new_row = distance > average_radius
-                if is_in_new_row:
-                    organized_grid.append([item])
-                    continue
-                # case 3: item is close enough to last item, so we're still in the same row
+            row = grid[-1]
+            # case 1: no items in row yet, so we can't make a comparison
+            if len(row) == 0:
                 row.append(item)
-            grids[i] = organized_grid
+                continue
+            # case 2: item is too far from last item on the y axis, so we're in a new row
+            last_item = row[-1]
+            distance = item[1][1] - last_item[1][1]
+            is_in_new_row = distance > average_radius
+            if is_in_new_row:
+                grid.append([item])
+                continue
+            # case 3: item is close enough to last item, so we're still in the same row
+            row.append(item)
 
-        # finally, we peform some basic validation and sort each row by x position
-        for grid_index, grid in enumerate(grids):
-            grid_start = (float("inf"), float("inf"))
-            grid_end = (0, 0)
-            # validate that each grid contains the same number of rows
-            if len(grid) != len(grids[0]):
+        # next, we want to convert each raw element into a class instance
+        # and perform some basic validation on the way
+        for row_index, row in enumerate(grid):
+            # validate that each row contains the same number of items
+            if len(row) != len(grid[0]):
                 raise Exception(
-                    f"Invalid number of rows (expected {len(grids[0])}, got {len(grid)})"
+                    f"Invalid number of items in row (expected {len(grid[0])}, got {len(row)})"
                 )
-            for row_index, row in enumerate(grid):
-                # validate that each row contains the same number of items
-                if len(row) != len(grid[0]):
-                    raise Exception(
-                        f"Invalid number of items in row (expected {len(grid[0])}, got {len(row)})"
-                    )
-                for item_index, item in enumerate(row):
-                    # compare to grid_start and grid_end and update as needed
-                    grid_start = (
-                        min(grid_start[0], item[0][0]),
-                        min(grid_start[1], item[0][1]),
-                    )
-                    grid_end = (
-                        max(grid_end[0], item[1][0]),
-                        max(grid_end[1], item[1][1]),
-                    )
-                    # draw each item, color doesn't matter
-                    draw_rectangle(item, self.frame, (0, 255, 0), 2)
+            for item_index, item in enumerate(row):
+                row[item_index] = Item(item, (row_index, item_index))
+            grid[row_index] = Row(row)
+        grid = Grid(grid)
 
-                row.sort(key=lambda item: item[0])
-                # draw each row in a different color
-                color = DEBUG_COLORS[row_index % len(DEBUG_COLORS)]
-                draw_rectangle((row[0][0], row[-1][1]), self.frame, color)
+        # finally, we sort each row on the x axis
+        for row in grid.rows:
+            row.items.sort(key=lambda item: item.start_point[0])
 
-            # draw each grid in a different color
-            color = DEBUG_COLORS[grid_index % len(DEBUG_COLORS)]
-            draw_rectangle((grid_start, grid_end), self.frame, color)
-
-        show_frame(self.frame, 500)
-
-        dimensions = (
-            len(grids),
-            len(grids[0]),
-            len(grids[0][0]),
-        )
-        return grids, dimensions
+        return grid

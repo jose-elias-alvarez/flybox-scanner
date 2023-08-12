@@ -1,5 +1,7 @@
 import cv2
 
+from custom_types import Frame
+
 # we need to test performance on lab hardware
 MAX_WIDTH = 640
 MAX_HEIGHT = 480
@@ -12,7 +14,7 @@ class FrameCropper:
     def __init__(self):
         self.boundary = None
 
-    def crop_boundary(self, frame):
+    def crop_boundary(self, frame: Frame):
         if self.boundary is not None:
             x, y, w, h = self.boundary
         else:
@@ -27,7 +29,7 @@ class FrameCropper:
         frame = frame[y : y + h, x : x + w]
         return frame
 
-    def resize(self, frame):
+    def resize(self, frame: Frame):
         original_height, original_width = frame.shape[:2]
         aspect_ratio = original_width / original_height
 

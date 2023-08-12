@@ -20,17 +20,17 @@ def get_frame_generator(cap):
 
 
 def main():
-    cap = cv2.VideoCapture(0)
-    # cap = cv2.VideoCapture("videos/Fly.mp4")
+    # cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("videos/Fly.mp4")
     frame_generator = get_frame_generator(cap)
 
     # in the actual app, we'll have this as a separate step
     # for now, just use the first frame
     first_frame = next(frame_generator)[0]
     grid_detector = GridDetector(first_frame)
-    grids, dimensions = grid_detector.detect()
+    grid = grid_detector.detect()
 
-    to_file_handler = ToFileHandler(dimensions)
+    to_file_handler = ToFileHandler(grid)
     resolution_handler = ResolutionHandler(5, to_file_handler)
     resolution_handler.start()
 
@@ -38,7 +38,7 @@ def main():
         resolution_handler.handle(e)
         debug_handler(e)
 
-    frame_handler = FrameHandler(grids, dimensions, wrapped_handler)
+    frame_handler = FrameHandler(grid, wrapped_handler)
     try:
         for frame, frame_count in frame_generator:
             frame_handler.handle(frame, frame_count)

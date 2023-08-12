@@ -1,25 +1,26 @@
-from threading import Timer
 import time
+from threading import Timer
+
+from handlers.frame import MotionEvent, MotionHandler
 
 
 class ResolutionHandler:
-    def __init__(self, resolution, handler):
+    def __init__(self, resolution: int, handler: MotionHandler):
         self.resolution = resolution
         self.handler = handler
 
         self.last_flush = time.time()
-        self.error = None
+        self.error: None | Exception = None
 
     def start(self):
         self.timer = Timer(self.resolution, self.flush)
         self.timer.start()
 
     def flush(self):
-        now = time.time()
-        # print(f"Delta: {now - self.last_flush}")
-        self.last_flush = now
+        timestamp = time.time()
+        self.last_flush = timestamp
         try:
-            self.handler.on_flush(now)
+            self.handler.on_flush(timestamp)
             self.start()
         except Exception as e:
             self.error = e
@@ -27,5 +28,5 @@ class ResolutionHandler:
     def cancel(self):
         self.timer.cancel()
 
-    def handle(self, event):
+    def handle(self, event: MotionEvent):
         self.handler.on_event(event)

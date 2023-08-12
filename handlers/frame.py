@@ -1,77 +1,80 @@
+from typing import Callable, List
+
 import cv2
 
+from custom_types import Contour, Frame
+from detection.grids import Grid, Item
 from detection.motion import MotionDetector
 
 
-class Point:
-    def __init__(self, contour, item, coords, frame_count):
+class MotionHandler:
+    def on_event(self, event: "MotionEvent") -> None:
+        raise NotImplementedError()
+
+    def on_flush(self, timestamp: float) -> None:
+        raise NotImplementedError()
+
+
+EventHandler = Callable[["MotionEvent"], None]
+
+
+class MotionPoint:
+    def __init__(self, contour: Contour, item: Item, frame_count: int):
         self.contour = contour
         self.item = item
-        self.coords = coords
         self.frame_count = frame_count
 
 
 class MotionEvent:
-    def __init__(self, coords, distance, point, frame):
-        self.coords = coords
+    def __init__(self, distance: int, point: MotionPoint, item: Item, frame: Frame):
         self.distance = distance
         self.point = point
+        self.item = item
         self.frame = frame
-
-    def __repr__(self):
-        return f"MotionEvent(coords={self.coords}, distance={self.distance})"
 
 
 class FrameHandler:
-    def __init__(self, grids, dimensions, handler):
-        self.grids = grids
-        self.dimensions = dimensions
+    def __init__(self, grid: Grid, handler: EventHandler):
         self.handler = handler
-
-        self.points = [
-            [[None for _ in range(dimensions[2])] for _ in range(dimensions[1])]
-            for _ in range(dimensions[0])
-        ]
+        self.grid = grid
         self.motion_detector = MotionDetector()
+
+        self.points = self.init_points()
         self.average = 0
 
-    def find_item(self, contour):
-        x, y, w, h = cv2.boundingRect(contour)
-        for grid_index, grid in enumerate(self.grids):
-            for row_index, row in enumerate(grid):
-                for item_index, item in enumerate(row):
-                    (x1_rect, y1_rect), (x2_rect, y2_rect) = item
-                    if (
-                        x >= x1_rect
-                        and y >= y1_rect
-                        and (x + w) <= x2_rect
-                        and (y + h) <= y2_rect
-                    ):
-                        return (item, (grid_index, row_index, item_index))
+    def init_points(self) -> List[List[None | MotionPoint]]:
+        (rows, cols) = self.grid.dimensions
+        points = []
+        for _ in range(rows):
+            row = []
+            for _ in range(cols):
+                row.append(None)
+            points.append(row)
+        return points
 
-    def handle_contour(self, contour, frame, frame_count):
-        found = self.find_item(contour)
-        if found is None:
+    def find_item(self, contour):
+        bounds = cv2.boundingRect(contour)
+        row = self.grid.find_row(bounds)
+        if row is None:
             return
-        # calculate size
+        return row.find_item(bounds)
+
+    def handle_contour(self, contour: Contour, frame: Frame, frame_count: int):
+        item = self.find_item(contour)
+        if item is None:
+            return
         size = cv2.contourArea(contour)
         # compare size to average
-        # if it's smaller than 0.8 * average or larger than 1.2 * average, ignore it
         if self.average > 0:
             if size < 0.33 * self.average or size > 3 * self.average:
                 return
-
-        # update average
         self.average = (self.average + size) / 2
 
-        item = found[0]
-        coords = found[1]
-
-        point = Point(contour, item, coords, frame_count)
-        last_point = self.points[coords[0]][coords[1]][coords[2]]
-
+        point = MotionPoint(contour, item, frame_count)
+        coords = point.item.coords
+        last_point = self.points[coords[0]][coords[1]]
         if last_point is None:
-            self.points[coords[0]][coords[1]][coords[2]] = point
+            self.points[coords[0]][coords[1]] = point
             return
 
         # if we have 2 points in the same frame, only keep the larger one
@@ -83,13 +86,12 @@ class FrameHandler:
         distance = cv2.matchShapes(
             point.contour, last_point.contour, cv2.CONTOURS_MATCH_I1, 0
         )
-        event = MotionEvent(coords, distance, point, frame)
+        event = MotionEvent(distance, point, item, frame)
         self.handler(event)
 
-        # set last point
-        self.points[coords[0]][coords[1]][coords[2]] = point
+        self.points[coords[0]][coords[1]] = point
 
-    def handle(self, frame, frame_count):
+    def handle(self, frame: Frame, frame_count: int):
         contours = self.motion_detector.detect(frame)
         for contour in contours:
             self.handle_contour(contour, frame, frame_count)

@@ -4,8 +4,7 @@ from detection.motion import MotionDetector
 
 
 class Point:
-    def __init__(self, center, contour, item, coords, frame_count):
-        self.center = center
+    def __init__(self, contour, item, coords, frame_count):
         self.contour = contour
         self.item = item
         self.coords = coords
@@ -31,29 +30,44 @@ class FrameHandler:
 
         self.points = [
             [[None for _ in range(dimensions[2])] for _ in range(dimensions[1])]
+            for _ in range(dimensions[0])
         ]
         self.motion_detector = MotionDetector()
+        self.average = 0
 
-    def find_item(self, center):
-        (x, y) = center
+    def find_item(self, contour):
+        x, y, w, h = cv2.boundingRect(contour)
         for grid_index, grid in enumerate(self.grids):
             for row_index, row in enumerate(grid):
                 for item_index, item in enumerate(row):
-                    if item[0][0] <= x <= item[1][0] and item[0][1] <= y <= item[1][1]:
+                    (x1_rect, y1_rect), (x2_rect, y2_rect) = item
+                    if (
+                        x >= x1_rect
+                        and y >= y1_rect
+                        and (x + w) <= x2_rect
+                        and (y + h) <= y2_rect
+                    ):
                         return (item, (grid_index, row_index, item_index))
 
     def handle_contour(self, contour, frame, frame_count):
-        center = self.motion_detector.get_center(contour)
-        if center is None:
-            return
-        found = self.find_item(center)
+        found = self.find_item(contour)
         if found is None:
             return
+        # calculate size
+        size = cv2.contourArea(contour)
+        # compare size to average
+        # if it's smaller than 0.8 * average or larger than 1.2 * average, ignore it
+        if self.average > 0:
+            if size < 0.33 * self.average or size > 3 * self.average:
+                return
+
+        # update average
+        self.average = (self.average + size) / 2
 
         item = found[0]
         coords = found[1]
 
-        point = Point(center, contour, item, coords, frame_count)
+        point = Point(contour, item, coords, frame_count)
         last_point = self.points[coords[0]][coords[1]][coords[2]]
 
         if last_point is None:
@@ -65,7 +79,10 @@ class FrameHandler:
             if cv2.contourArea(point.contour) < cv2.contourArea(last_point.contour):
                 return
 
-        distance = cv2.norm(point.center, last_point.center)
+        # calculate distance between two contours
+        distance = cv2.matchShapes(
+            point.contour, last_point.contour, cv2.CONTOURS_MATCH_I1, 0
+        )
         event = MotionEvent(coords, distance, point, frame)
         self.handler(event)
 

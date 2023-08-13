@@ -95,4 +95,3 @@ class FrameHandler:
         contours = self.motion_detector.detect(frame)
         for contour in contours:
             self.handle_contour(contour, frame, frame_count)
-        return frame

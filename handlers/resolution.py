@@ -11,8 +11,10 @@ class ResolutionHandler:
 
         self.last_flush = time.time()
         self.error: None | Exception = None
+        self.started = False
 
     def start(self):
+        self.started = True
         self.timer = Timer(self.resolution, self.flush)
         self.timer.start()
 

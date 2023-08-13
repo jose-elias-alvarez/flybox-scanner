@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from custom_types import ContourBounds, Rectangle
-from utils import draw_circle, show_frame
+from utils import draw_circle
 
 MAX_ITERATIONS = 100
 MAX_CIRCLES = 96 * 2
@@ -157,13 +157,6 @@ class GridDetector:
             min_dist = min_radius * 2
             last_average_radius = average_radius
 
-            # draw circles at each step so users don't think the program has frozen
-            # (and because it looks cool)
-            copy = self.frame.copy()
-            for circle in detected[0]:
-                draw_circle(circle, copy, (255, 0, 0))
-            show_frame(copy, 75)
-
         if last_average_radius == float("inf"):
             raise Exception("No circles detected")
         return last_average_radius
@@ -188,10 +181,8 @@ class GridDetector:
             raise Exception("No circles detected")
         circles = detected[0]
 
-        copy = self.frame.copy()
         for circle in circles:
-            draw_circle(circle, copy, (0, 255, 0))
-        show_frame(copy, 500)
+            draw_circle(circle, self.frame, (0, 255, 0))
         return circles
 
     def detect(self):

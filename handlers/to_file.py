@@ -5,27 +5,31 @@ from detection.grids import Grid
 from handlers.frame import MotionEvent
 from handlers.resolution import MotionHandler
 
-FILE_PATH = "data.txt"
+OUT_DIR = "output"
 DELIMITER = "\t"
 DATE_FORMAT = "%d %b %y"
 TIME_FORMAT = "%H:%M:%S"
+
+
+def make_empty_distances(grid):
+    (rows, cols) = grid.dimensions
+    distances = []
+    for _ in range(rows):
+        row = []
+        for _ in range(cols):
+            row.append(0)
+        distances.append(row)
+    return distances
 
 
 class ToFileHandler(MotionHandler):
     def __init__(self, grid: Grid):
         self.grid = grid
         self.index = 0
-        self.distances = self.make_empty_distances()
+        self.distances = make_empty_distances(grid)
 
-    def make_empty_distances(self) -> List[List[int]]:
-        (rows, cols) = self.grid.dimensions
-        distances = []
-        for _ in range(rows):
-            row = []
-            for _ in range(cols):
-                row.append(0)
-            distances.append(row)
-        return distances
+        date = datetime.datetime.now().strftime("%d-%b-%y_%H-%M-%S.txt")
+        self.file_path = f"{OUT_DIR}/{date}"
 
     def on_event(self, event: MotionEvent):
         (row, col) = event.item.coords
@@ -51,7 +55,7 @@ class ToFileHandler(MotionHandler):
         return DELIMITER.join(map(str, parts))
 
     def write_row(self, row: str):
-        with open(FILE_PATH, "a") as f:
+        with open(self.file_path, "a") as f:
             f.write(row + "\n")
 
     def on_flush(self, timestamp: float):

@@ -2,7 +2,6 @@ from typing import Callable, List
 
 import cv2
 
-from custom_types import Contour, Frame
 from detection.grids import Grid, Item
 from detection.motion import MotionDetector
 
@@ -19,14 +18,14 @@ EventHandler = Callable[["MotionEvent"], None]
 
 
 class MotionPoint:
-    def __init__(self, contour: Contour, item: Item, frame_count: int):
+    def __init__(self, contour, item: Item, frame_count: int):
         self.contour = contour
         self.item = item
         self.frame_count = frame_count
 
 
 class MotionEvent:
-    def __init__(self, distance: int, point: MotionPoint, item: Item, frame: Frame):
+    def __init__(self, distance: int, point: MotionPoint, item: Item, frame):
         self.distance = distance
         self.point = point
         self.item = item
@@ -59,7 +58,7 @@ class FrameHandler:
             return
         return row.find_item(bounds)
 
-    def handle_contour(self, contour: Contour, frame: Frame, frame_count: int):
+    def handle_contour(self, contour, frame, frame_count: int):
         item = self.find_item(contour)
         if item is None:
             return
@@ -91,7 +90,7 @@ class FrameHandler:
 
         self.points[coords[0]][coords[1]] = point
 
-    def handle(self, frame: Frame, frame_count: int):
+    def handle(self, frame, frame_count: int):
         contours = self.motion_detector.detect(frame)
         for contour in contours:
             self.handle_contour(contour, frame, frame_count)

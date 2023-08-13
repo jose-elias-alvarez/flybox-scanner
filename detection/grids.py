@@ -3,8 +3,8 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
-from custom_types import ContourBounds, Rectangle
-from utils import draw_circle
+from custom_types.contour import ContourBounds
+from custom_types.geometry import Rectangle
 
 MAX_ITERATIONS = 100
 MAX_CIRCLES = 96 * 2
@@ -180,9 +180,6 @@ class GridDetector:
         if detected is None:
             raise Exception("No circles detected")
         circles = detected[0]
-
-        for circle in circles:
-            draw_circle(circle, self.frame, (0, 255, 0))
         return circles
 
     def detect(self):

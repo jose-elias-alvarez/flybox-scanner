@@ -1,5 +1,7 @@
-import cv2
 import logging
+
+import cv2
+
 from detection.frame import crop
 from detection.grids import GridDetector
 from handlers.debug import debug_handler

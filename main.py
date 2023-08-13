@@ -16,6 +16,40 @@ paused = False
 hide = False
 
 
+class FrameFetcher(threading.Thread):
+    def __init__(self, generator):
+        super().__init__(daemon=True)
+        self.raw_frames = queue.Queue(maxsize=1)
+        self.generator = generator
+
+    def run(self):
+        global paused
+        if paused:
+            return
+        for frame, frame_count in self.generator:
+            self.raw_frames.put((frame, frame_count))
+
+
+def process_image(frame):
+    return frame
+
+
+class FrameProcessor(threading.Thread):
+    def __init__(self, fetcher):
+        super().__init__(daemon=True)
+        self.processed_frames = queue.Queue(maxsize=1)
+        self.fetcher = fetcher
+
+    def run(self):
+        while True:
+            if not self.fetcher.raw_frames.empty():
+                (raw_frame, frame_count) = self.fetcher.raw_frames.get()
+                processed_frame = process_image(
+                    raw_frame
+                )  # Replace with your image processing function
+                self.processed_frames.put((processed_frame, frame_count))
+
+
 def main():
     def get_frame_generator(cap):
         frame_count = 0
@@ -55,21 +89,22 @@ def main():
         nonlocal captured_img_tk, captured_img_id
         nonlocal grid
 
-        frame = next(get_frame_generator(cap))[0]
-        grid_detector = GridDetector(frame)
-        grid = grid_detector.detect()
+        if not frame_processor.processed_frames.empty():
+            (frame, _) = frame_processor.processed_frames.get()
+            grid_detector = GridDetector(frame)
+            grid = grid_detector.detect()
 
-        # Then, display the frame in a new window
-        paused = True
-        captured_img_tk = ImageTk.PhotoImage(
-            image=Image.fromarray(frame)
-        )  # Replace frame with processed_frame if you make processed_frame
-        if captured_img_id is None:
-            captured_img_id = canvas.create_image(
-                0, 0, anchor=tk.NW, image=captured_img_tk
-            )
-        else:
-            canvas.itemconfig(captured_img_id, image=captured_img_tk)
+            # Then, display the frame in a new window
+            paused = True
+            captured_img_tk = ImageTk.PhotoImage(
+                image=Image.fromarray(frame)
+            )  # Replace frame with processed_frame if you make processed_frame
+            if captured_img_id is None:
+                captured_img_id = canvas.create_image(
+                    0, 0, anchor=tk.NW, image=captured_img_tk
+                )
+            else:
+                canvas.itemconfig(captured_img_id, image=captured_img_tk)
 
     button = tk.Button(window, text="Capture", command=capture_frame)
     button.pack()
@@ -102,16 +137,20 @@ def main():
     hide_button = tk.Button(window, text="Hide", command=hide_frame)
     hide_button.pack()
 
+    frame_fetcher = FrameFetcher(get_frame_generator(cap))
+    frame_fetcher.start()
+
+    frame_processor = FrameProcessor(frame_fetcher)
+    frame_processor.start()
+
     img = None
     img_id = None
-
-    generator = get_frame_generator(cap)
 
     def update_frame():
         global paused, hide
         nonlocal img, img_id
-        if not paused:
-            frame, frame_count = next(generator)
+        if not paused and not frame_processor.processed_frames.empty():
+            (frame, frame_count) = frame_processor.processed_frames.get()
             if resolution_handler is not None and not resolution_handler.started:
                 resolution_handler.start()
             if frame_handler is not None:

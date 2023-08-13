@@ -30,23 +30,21 @@ class FrameFetcher(threading.Thread):
             self.raw_frames.put((frame, frame_count))
 
 
-def process_image(frame):
-    return frame
-
-
 class FrameProcessor(threading.Thread):
     def __init__(self, fetcher):
         super().__init__(daemon=True)
         self.processed_frames = queue.Queue(maxsize=1)
         self.fetcher = fetcher
+        self.handler = None
 
     def run(self):
         while True:
             if not self.fetcher.raw_frames.empty():
                 (raw_frame, frame_count) = self.fetcher.raw_frames.get()
-                processed_frame = process_image(
-                    raw_frame
-                )  # Replace with your image processing function
+                if self.handler is not None:
+                    processed_frame = self.handler.handle(raw_frame, frame_count)
+                else:
+                    processed_frame = raw_frame
                 self.processed_frames.put((processed_frame, frame_count))
 
 
@@ -74,15 +72,7 @@ def main():
     captured_img_tk = None
     captured_img_id = None
 
-    to_file_handler = None
-    resolution_handler = None
-    frame_handler = None
     grid = None
-
-    def wrapped_handler(e):
-        if resolution_handler is not None:
-            resolution_handler.handle(e)
-        debug_handler(e)
 
     def capture_frame():
         global paused
@@ -114,11 +104,17 @@ def main():
         paused = False
 
     def accept_frame():
-        nonlocal to_file_handler, resolution_handler, frame_handler
-        nonlocal grid
+        nonlocal grid, frame_processor
         to_file_handler = ToFileHandler(grid)
         resolution_handler = ResolutionHandler(5, to_file_handler)
+        resolution_handler.start()
+
+        def wrapped_handler(e):
+            resolution_handler.handle(e)
+            debug_handler(e)
+
         frame_handler = FrameHandler(grid, wrapped_handler)
+        frame_processor.handler = frame_handler
         resume_stream()
 
         # destroy captured image
@@ -151,10 +147,6 @@ def main():
         nonlocal img, img_id
         if not paused and not frame_processor.processed_frames.empty():
             (frame, frame_count) = frame_processor.processed_frames.get()
-            if resolution_handler is not None and not resolution_handler.started:
-                resolution_handler.start()
-            if frame_handler is not None:
-                frame_handler.handle(frame, frame_count)
             if not hide:
                 img = ImageTk.PhotoImage(image=Image.fromarray(frame))
                 img_id = canvas.create_image(0, 0, anchor=tk.NW, image=img)

@@ -22,6 +22,5 @@ class StateManager:
     def select_webcam(self):
         self.window.set_canvas(lambda: SelectWebcamCanvas(self.window))
 
-    # requires using a lambda, not the friendlest but works for now
-    def record(self, scan_canvas: ScanCanvas):
-        self.window.set_canvas(lambda: RecordCanvas(self.window, scan_canvas))
+    def record(self):
+        self.window.set_canvas(lambda: RecordCanvas(self.window))

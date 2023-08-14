@@ -1,11 +1,11 @@
 import tkinter as tk
+from tkinter import filedialog
 from typing import TYPE_CHECKING
 
 from components.frame_canvas import FrameCanvas
-from handlers.debug import debug_handler
+from handlers.debug import DebugHandler
+from handlers.file_interval import FileIntervalHandler
 from handlers.frame import FrameHandler
-from handlers.resolution import ResolutionHandler
-from handlers.to_file import ToFileHandler
 
 if TYPE_CHECKING:
     from components.root_window import RootWindow
@@ -13,23 +13,20 @@ if TYPE_CHECKING:
 
 
 class RecordCanvas(FrameCanvas):
-    def __init__(self, window: "RootWindow", scan_canvas: "ScanCanvas"):
+    def __init__(self, window: "RootWindow"):
         super().__init__(window)
         self.hidden = False
-        self.border_detector = scan_canvas.border_detector
 
-        filename, grid = scan_canvas.filename, scan_canvas.grid
-        to_file_handler = ToFileHandler(filename, grid)
-        resolution_handler = ResolutionHandler(5, to_file_handler, window.errors)
-        resolution_handler.start()
-        # make sure cancel() is called on unmount
-        self.window.cleanup.put(resolution_handler.cancel)
+        try:
+            filename = window.app_state["filename"]
+        except KeyError:
+            filename = filedialog.asksaveasfilename(defaultextension=".txt")
 
-        def wrapped_handler(e):
-            resolution_handler.handle(e)
-            debug_handler(e)
+        file_interval_handler = FileIntervalHandler(window, filename)
+        file_interval_handler.start()
 
-        self.frame_handler = FrameHandler(grid, wrapped_handler)
+        wrapped_handler = DebugHandler(file_interval_handler)
+        self.frame_handler = FrameHandler(window, wrapped_handler)
 
         self.stop_button = tk.Button(
             text="Stop", command=self.window.state_manager.idle
@@ -52,8 +49,12 @@ class RecordCanvas(FrameCanvas):
             self.config(width=0, height=0)
 
     def resize_frame(self, frame):
-        (x, y, w, h) = self.border_detector.get_border(frame)
-        frame = frame[y : y + h, x : x + w]
+        try:
+            border = self.window.app_state["border"]
+            (x, y, w, h) = border
+            frame = frame[y : y + h, x : x + w]
+        except KeyError:
+            pass
 
         return super().resize_frame(frame)
 

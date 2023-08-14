@@ -24,6 +24,9 @@ class RootWindow(tk.Tk):
         self.cleanup = queue.SimpleQueue()  # cleanup callbacks to run on wipe
         self.errors = queue.SimpleQueue()  # errors from threads
 
+        # dictionary of arbitrary values to share between components
+        self.app_state = {}
+
         self.state_manager = StateManager(self)
         self.canvas = None
         self.state_manager.idle()

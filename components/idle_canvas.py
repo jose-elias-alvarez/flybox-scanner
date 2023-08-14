@@ -15,7 +15,7 @@ class IdleCanvas(FrameCanvas):
         super().__init__(window)
 
         self.scan_button = tk.Button(
-            window, text="Start Scanning", command=window.state_manager.scan
+            window, text="Scan", command=window.state_manager.scan
         )
         self.select_webcam_button = tk.Button(
             window, text="Select Webcam", command=window.state_manager.select_webcam

@@ -16,18 +16,20 @@ class ScanCanvas(FrameCanvas):
     def __init__(self, window: "RootWindow"):
         super().__init__(window)
         self.grid = None
-        self.filename = None
+        self.window.app_state.pop("grid", None)
+        self.window.app_state.pop("border", None)
+
         self.hidden = False
         self.border_detector = BorderDetector()
 
         self.rescan_button = tk.Button(text="Rescan", command=self.detect_grid)
-        self.pick_file_button = tk.Button(
-            text="Select Output File", command=self.pick_file
-        )
-        self.record_button = tk.Button(
-            text="Record", command=lambda: window.state_manager.record(self)
-        )
-        self.record_button.configure(state="disabled")
+
+        def start_recording():
+            # only set grid here now that it's confirmed
+            self.window.app_state["grid"] = self.grid
+            self.window.state_manager.record()
+
+        self.record_button = tk.Button(text="Record", command=start_recording)
         self.cancel_button = tk.Button(
             text="Cancel", command=self.window.state_manager.idle
         )
@@ -37,18 +39,8 @@ class ScanCanvas(FrameCanvas):
     def pack(self):
         super().pack()
         self.rescan_button.pack()
-        self.pick_file_button.pack()
         self.record_button.pack()
         self.cancel_button.pack()
-
-    def pick_file(self):
-        filename = filedialog.asksaveasfilename(defaultextension=".txt")
-        if filename == "":
-            return
-        self.filename = filename
-        # update buttons
-        self.pick_file_button["text"] = f"Output File: {self.filename}"
-        self.record_button.configure(state="normal")
 
     def get_frame(self):
         frame, frame_count = super().get_frame()
@@ -84,9 +76,12 @@ class ScanCanvas(FrameCanvas):
             messagebox.showwarning("Detection Failed", str(e))
 
     def resize_frame(self, frame):
-        (x, y, w, h) = self.border_detector.get_border(frame)
+        try:
+            (x, y, w, h) = self.window.app_state["border"]
+        except KeyError:
+            (x, y, w, h) = self.border_detector.get_border(frame)
+            self.window.app_state["border"] = (x, y, w, h)
         frame = frame[y : y + h, x : x + w]
-
         return super().resize_frame(frame)
 
     def update(self):

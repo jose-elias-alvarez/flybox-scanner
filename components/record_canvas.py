@@ -13,8 +13,8 @@ class RecordCanvas(FrameCanvas):
         self.hidden = False
         self.border_detector = capture_canvas.border_detector
 
-        grid = capture_canvas.grid
-        to_file_handler = ToFileHandler(grid)
+        filename, grid = capture_canvas.filename, capture_canvas.grid
+        to_file_handler = ToFileHandler(filename, grid)
         resolution_handler = ResolutionHandler(5, to_file_handler, window.errors)
         resolution_handler.start()
         # make sure cancel() is called on unmount

@@ -23,14 +23,13 @@ def make_empty_distances(grid):
 
 
 class ToFileHandler(MotionHandler):
-    def __init__(self, grid: Grid):
+    def __init__(self, filename: str, grid: Grid):
         self.grid = grid
         self.index = 0
         self.distances = make_empty_distances(grid)
 
-        date = datetime.datetime.now().strftime("%d-%b-%y_%H-%M-%S.txt")
-        self.file_path = f"{OUT_DIR}/{date}"
-        with open(self.file_path, "w") as f:
+        self.filename = filename
+        with open(self.filename, "w") as f:
             f.write("")
 
     def on_event(self, event: MotionEvent):
@@ -57,7 +56,7 @@ class ToFileHandler(MotionHandler):
         return DELIMITER.join(map(str, parts))
 
     def write_row(self, row: str):
-        with open(self.file_path, "a") as f:
+        with open(self.filename, "a") as f:
             f.write(row + "\n")
 
     def on_flush(self, timestamp: float):

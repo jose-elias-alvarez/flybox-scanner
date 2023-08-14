@@ -19,9 +19,6 @@ class RootWindow(tk.Tk):
         self.cleanup = queue.SimpleQueue()  # cleanup callbacks to run on wipe
         self.errors = queue.SimpleQueue()  # errors from threads
 
-        self.capture_button: tk.Button | None = None
-        self.select_webcam_button: tk.Button | None = None
-
         self.state_manager = StateManager(self)
         self.canvas = None
         self.state_manager.idle()

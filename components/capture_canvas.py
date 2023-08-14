@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
 
 import cv2
 
@@ -12,13 +12,18 @@ class CaptureCanvas(FrameCanvas):
     def __init__(self, window):
         super().__init__(window)
         self.grid = None
+        self.filename = None
         self.hidden = False
         self.border_detector = BorderDetector()
 
         self.retry_button = tk.Button(text="Retry", command=self.detect_grid)
+        self.pick_file_button = tk.Button(
+            text="Select Output File", command=self.pick_file
+        )
         self.record_button = tk.Button(
             text="Record", command=lambda: window.state_manager.record(self)
         )
+        self.record_button.configure(state="disabled")
         self.cancel_button = tk.Button(
             text="Cancel", command=self.window.state_manager.idle
         )
@@ -28,8 +33,18 @@ class CaptureCanvas(FrameCanvas):
     def pack(self):
         super().pack()
         self.retry_button.pack()
+        self.pick_file_button.pack()
         self.record_button.pack()
         self.cancel_button.pack()
+
+    def pick_file(self):
+        filename = filedialog.asksaveasfilename(defaultextension=".txt")
+        if filename == "":
+            return
+        self.filename = filename
+        # update buttons
+        self.pick_file_button["text"] = self.filename
+        self.record_button.configure(state="normal")
 
     def get_frame(self):
         frame, frame_count = super().get_frame()

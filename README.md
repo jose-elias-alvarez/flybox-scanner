@@ -30,17 +30,8 @@ python main.py
 
 Note that video output is not yet optimized and may differ from webcam output.
 
-Download one of the following samples to `videos/`:
-
 - [Fly.mp4](https://drive.google.com/file/d/1q6RSJJIWKrrxvLqLVuanaOrmj1ull6yN/view?usp=share_link)
 - [DoubleFly.mp4](https://drive.google.com/file/d/1jw3vVR3u8bQfJR4toDuorEAYqEPXu1Qc/view?usp=share_link)
-
-Then, in `main.py`:
-
-```python
-def main():
-    cap = cv2.VideoCapture("videos/Fly.mp4")
-```
 
 ### VS Code
 

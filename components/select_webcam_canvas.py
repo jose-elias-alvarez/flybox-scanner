@@ -21,11 +21,11 @@ class SelectWebcamCanvas(tk.Canvas):
         self.frame = None
 
         self.selected_source = tk.StringVar()
-        self.selected_source.set("Webcam 0")  # initial value
+        self.selected_source.set("Webcam 1")  # initial value
         self.dropdown = tk.OptionMenu(
             self.window,
             self.selected_source,
-            *["Webcam " + str(i) for i in self.sources],
+            *["Webcam " + str(i + 1) for i in self.sources],
             command=self.change_webcam
         )
         self.dropdown.pack()
@@ -47,7 +47,8 @@ class SelectWebcamCanvas(tk.Canvas):
         return arr
 
     def change_webcam(self, selected_source):
-        self.current_source = int(selected_source.split(" ")[1])
+        print(selected_source)
+        self.current_source = int(selected_source.split(" ")[1]) - 1
         self.cap.release()
         self.cap = cv2.VideoCapture(self.current_source)
 

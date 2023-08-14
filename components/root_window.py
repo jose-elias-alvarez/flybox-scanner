@@ -1,5 +1,6 @@
 import queue
 import tkinter as tk
+import traceback
 from tkinter import messagebox
 from typing import Callable
 
@@ -70,8 +71,9 @@ class RootWindow(tk.Tk):
         self.update()
         self.mainloop()
 
-    def handle_exception(self, exctype, value, traceback):
-        # TODO: add logging
+    def handle_exception(self, exctype, value, trace):
+        # TODO: add file logging
+        traceback.print_exception(exctype, value, trace)
         # for now, show message box and quit, since these are unhandled
         messagebox.showerror("Error", value)
         self.quit()

@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 from typing import TYPE_CHECKING
 
 import cv2
@@ -12,7 +13,15 @@ if TYPE_CHECKING:
 class SelectWebcamCanvas(FrameCanvas):
     def __init__(self, window: "RootWindow"):
         super().__init__(window)
-        self.sources = self.get_webcams()
+
+        sources = self.get_webcams()
+        if len(sources) == 0:
+            raise Exception("No webcams found")
+        if len(sources) == 1:
+            messagebox.showinfo("Select Webcam", "Only 1 webcam found!")
+            self.window.after_idle(self.window.state_manager.idle)
+
+        self.sources = sources
         self.current_source = self.sources[0]
         self.window.set_cap(cv2.VideoCapture(self.current_source))
 
@@ -50,10 +59,3 @@ class SelectWebcamCanvas(FrameCanvas):
     def change_webcam(self, selected_source):
         self.current_source = int(selected_source.split(" ")[1]) - 1
         self.window.set_cap(cv2.VideoCapture(self.current_source))
-
-    def resize_frame(self, image):
-        (h, w) = image.shape[:2]
-        r = self.window.width / float(w)
-        dim = (self.window.width, int(h * r))
-
-        return cv2.resize(image, dim)

@@ -10,8 +10,8 @@ class IdleCanvas(FrameCanvas):
     def __init__(self, window):
         super().__init__(window)
 
-        self.capture_button = tk.Button(
-            window, text="Capture", command=window.state_manager.capture
+        self.scan_button = tk.Button(
+            window, text="Start Scanning", command=window.state_manager.scan
         )
         self.select_webcam_button = tk.Button(
             window, text="Select Webcam", command=window.state_manager.select_webcam
@@ -22,7 +22,7 @@ class IdleCanvas(FrameCanvas):
 
     def pack(self):
         super().pack()
-        self.capture_button.pack()
+        self.scan_button.pack()
         self.select_webcam_button.pack()
         self.select_video_button.pack()
 

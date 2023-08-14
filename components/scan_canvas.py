@@ -8,7 +8,7 @@ from detection.border import BorderDetector
 from detection.grids import GridDetector
 
 
-class CaptureCanvas(FrameCanvas):
+class ScanCanvas(FrameCanvas):
     def __init__(self, window):
         super().__init__(window)
         self.grid = None
@@ -16,7 +16,7 @@ class CaptureCanvas(FrameCanvas):
         self.hidden = False
         self.border_detector = BorderDetector()
 
-        self.retry_button = tk.Button(text="Retry", command=self.detect_grid)
+        self.rescan_button = tk.Button(text="Rescan", command=self.detect_grid)
         self.pick_file_button = tk.Button(
             text="Select Output File", command=self.pick_file
         )
@@ -32,7 +32,7 @@ class CaptureCanvas(FrameCanvas):
 
     def pack(self):
         super().pack()
-        self.retry_button.pack()
+        self.rescan_button.pack()
         self.pick_file_button.pack()
         self.record_button.pack()
         self.cancel_button.pack()
@@ -43,7 +43,7 @@ class CaptureCanvas(FrameCanvas):
             return
         self.filename = filename
         # update buttons
-        self.pick_file_button["text"] = self.filename
+        self.pick_file_button["text"] = f"Output File: {self.filename}"
         self.record_button.configure(state="normal")
 
     def get_frame(self):

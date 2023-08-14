@@ -8,12 +8,12 @@ from handlers.to_file import ToFileHandler
 
 
 class RecordCanvas(FrameCanvas):
-    def __init__(self, window, capture_canvas):
+    def __init__(self, window, scan_canvas):
         super().__init__(window)
         self.hidden = False
-        self.border_detector = capture_canvas.border_detector
+        self.border_detector = scan_canvas.border_detector
 
-        filename, grid = capture_canvas.filename, capture_canvas.grid
+        filename, grid = scan_canvas.filename, scan_canvas.grid
         to_file_handler = ToFileHandler(filename, grid)
         resolution_handler = ResolutionHandler(5, to_file_handler, window.errors)
         resolution_handler.start()

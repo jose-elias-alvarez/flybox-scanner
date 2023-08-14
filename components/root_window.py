@@ -18,6 +18,8 @@ class RootWindow(tk.Tk):
         self.width = 640
         self.height = 480
         self.delay = 33
+        self.is_running = True
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self.cleanup = queue.SimpleQueue()  # cleanup callbacks to run on wipe
         self.errors = queue.SimpleQueue()  # errors from threads
@@ -28,6 +30,10 @@ class RootWindow(tk.Tk):
 
         # override error handling
         self.report_callback_exception = self.handle_exception
+
+    def on_close(self):
+        self.is_running = False
+        self.destroy()
 
     def wipe(self):
         while not self.cleanup.empty():
@@ -62,6 +68,9 @@ class RootWindow(tk.Tk):
             raise error
         except queue.Empty:
             pass
+
+        if not self.is_running:
+            return
 
         if self.canvas is not None:
             self.canvas.update()

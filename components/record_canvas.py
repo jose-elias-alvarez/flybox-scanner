@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import TYPE_CHECKING
 
 from components.frame_canvas import FrameCanvas
 from handlers.debug import debug_handler
@@ -6,9 +7,13 @@ from handlers.frame import FrameHandler
 from handlers.resolution import ResolutionHandler
 from handlers.to_file import ToFileHandler
 
+if TYPE_CHECKING:
+    from components.root_window import RootWindow
+    from components.scan_canvas import ScanCanvas
+
 
 class RecordCanvas(FrameCanvas):
-    def __init__(self, window, scan_canvas):
+    def __init__(self, window: "RootWindow", scan_canvas: "ScanCanvas"):
         super().__init__(window)
         self.hidden = False
         self.border_detector = scan_canvas.border_detector

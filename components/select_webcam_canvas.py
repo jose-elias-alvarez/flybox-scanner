@@ -56,6 +56,6 @@ class SelectWebcamCanvas(FrameCanvas):
             index += 1
         return arr
 
-    def change_webcam(self, selected_source):
+    def change_webcam(self, selected_source: str):
         self.current_source = int(selected_source.split(" ")[1]) - 1
         self.window.set_cap(cv2.VideoCapture(self.current_source))

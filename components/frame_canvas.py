@@ -20,7 +20,7 @@ class FrameCanvas(tk.Canvas):
     def transition(self):
         pass
 
-    def resize(self, width, height):
+    def resize(self, width: int, height: int):
         self.config(width=width, height=height)
 
     def resize_frame(self, frame):

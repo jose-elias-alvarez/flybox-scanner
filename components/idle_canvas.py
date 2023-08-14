@@ -1,13 +1,17 @@
 import tkinter as tk
 from tkinter import filedialog
+from typing import TYPE_CHECKING
 
 import cv2
 
 from components.frame_canvas import FrameCanvas
 
+if TYPE_CHECKING:
+    from components.root_window import RootWindow
+
 
 class IdleCanvas(FrameCanvas):
-    def __init__(self, window):
+    def __init__(self, window: "RootWindow"):
         super().__init__(window)
 
         self.scan_button = tk.Button(

@@ -1,11 +1,16 @@
+from typing import TYPE_CHECKING
+
 from components.idle_canvas import IdleCanvas
 from components.record_canvas import RecordCanvas
 from components.scan_canvas import ScanCanvas
 from components.select_webcam_canvas import SelectWebcamCanvas
 
+if TYPE_CHECKING:
+    from components.root_window import RootWindow
+
 
 class StateManager:
-    def __init__(self, window):
+    def __init__(self, window: "RootWindow"):
         self.window = window
 
     def idle(self):
@@ -18,5 +23,5 @@ class StateManager:
         self.window.set_canvas(lambda: SelectWebcamCanvas(self.window))
 
     # requires using a lambda, not the friendlest but works for now
-    def record(self, scan_canvas):
+    def record(self, scan_canvas: ScanCanvas):
         self.window.set_canvas(lambda: RecordCanvas(self.window, scan_canvas))

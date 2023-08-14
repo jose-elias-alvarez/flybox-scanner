@@ -30,6 +30,8 @@ class ToFileHandler(MotionHandler):
 
         date = datetime.datetime.now().strftime("%d-%b-%y_%H-%M-%S.txt")
         self.file_path = f"{OUT_DIR}/{date}"
+        with open(self.file_path, "w") as f:
+            f.write("")
 
     def on_event(self, event: MotionEvent):
         (row, col) = event.item.coords
@@ -65,4 +67,4 @@ class ToFileHandler(MotionHandler):
         row = self.make_row(time)
         self.write_row(row)
 
-        self.distances = make_empty_distances()
+        self.distances = make_empty_distances(self.grid)

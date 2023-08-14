@@ -9,14 +9,16 @@ if TYPE_CHECKING:
 
 
 class FrameCanvas(tk.Canvas):
-    def __init__(self, window: "RootWindow", cap, **kwargs):
+    def __init__(self, window: "RootWindow", **kwargs):
         super().__init__(width=window.width, height=window.height, **kwargs)
         self.window = window
         self.image_id = None
         self.image = None
 
         self.frame_count = 0
-        self.cap = cap
+
+    def transition(self):
+        pass
 
     def resize_frame(self, frame):
         original_height, original_width = frame.shape[:2]
@@ -32,7 +34,7 @@ class FrameCanvas(tk.Canvas):
         return frame
 
     def get_frame(self):
-        ok, frame = self.cap.read()
+        ok, frame = self.window.cap.read()
         if not ok:
             raise Exception("Could not read frame")
         frame = self.resize_frame(frame)

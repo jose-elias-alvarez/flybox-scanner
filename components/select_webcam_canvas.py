@@ -11,13 +11,13 @@ if TYPE_CHECKING:
 
 class SelectWebcamCanvas(FrameCanvas):
     def __init__(self, window: "RootWindow"):
+        super().__init__(window)
         self.sources = self.get_webcams()
         self.current_source = self.sources[0]
-        self.cap = cv2.VideoCapture(self.current_source)
+        self.window.set_cap(cv2.VideoCapture(self.current_source))
+
         self.selected_source = tk.StringVar()
         self.selected_source.set("Webcam 1")
-
-        super().__init__(window, self.cap)
 
         self.dropdown = tk.OptionMenu(
             self.window,
@@ -25,7 +25,9 @@ class SelectWebcamCanvas(FrameCanvas):
             *["Webcam " + str(i + 1) for i in self.sources],
             command=self.change_webcam
         )
-        self.select_button = tk.Button(self.window, text="Select", command=self.select)
+        self.select_button = tk.Button(
+            self.window, text="Select", command=self.window.state_manager.idle
+        )
 
     def pack(self):
         super().pack()
@@ -47,8 +49,7 @@ class SelectWebcamCanvas(FrameCanvas):
 
     def change_webcam(self, selected_source):
         self.current_source = int(selected_source.split(" ")[1]) - 1
-        self.cap.release()
-        self.cap = cv2.VideoCapture(self.current_source)
+        self.window.set_cap(cv2.VideoCapture(self.current_source))
 
     def resize_frame(self, image):
         (h, w) = image.shape[:2]
@@ -56,7 +57,3 @@ class SelectWebcamCanvas(FrameCanvas):
         dim = (self.window.width, int(h * r))
 
         return cv2.resize(image, dim)
-
-    def select(self):
-        self.window.set_cap(self.cap)
-        self.window.on_idle()

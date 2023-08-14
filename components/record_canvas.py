@@ -1,7 +1,6 @@
 import tkinter as tk
 
 from components.frame_canvas import FrameCanvas
-from components.hide_button import HideButton
 from handlers.debug import debug_handler
 from handlers.frame import FrameHandler
 from handlers.resolution import ResolutionHandler
@@ -9,14 +8,13 @@ from handlers.to_file import ToFileHandler
 
 
 class RecordCanvas(FrameCanvas):
-    def __init__(self, window, cap, grid, border_detector):
-        super().__init__(window, cap)
-
+    def __init__(self, window, capture_canvas):
+        super().__init__(window)
         self.hidden = False
-        self.grid = grid
-        self.border_detector = border_detector
+        self.border_detector = capture_canvas.border_detector
 
-        to_file_handler = ToFileHandler(self.grid)
+        grid = capture_canvas.grid
+        to_file_handler = ToFileHandler(grid)
         resolution_handler = ResolutionHandler(5, to_file_handler, window.errors)
         resolution_handler.start()
         # make sure cancel() is called on unmount
@@ -26,15 +24,21 @@ class RecordCanvas(FrameCanvas):
             resolution_handler.handle(e)
             debug_handler(e)
 
-        self.frame_handler = FrameHandler(self.grid, wrapped_handler)
+        self.frame_handler = FrameHandler(grid, wrapped_handler)
 
-        self.hide_button = HideButton(self.window, self)
-        self.stop_button = tk.Button(text="Stop", command=self.window.on_idle)
+        self.stop_button = tk.Button(
+            text="Stop", command=self.window.state_manager.idle
+        )
+        self.hide_button = tk.Button(text="Hide", command=self.toggle_hide)
 
     def pack(self):
         super().pack()
         self.hide_button.pack()
         self.stop_button.pack()
+
+    def toggle_hide(self):
+        self.hidden = not self.hidden
+        self.hide_button.config(text="Show" if self.hidden else "Hide")
 
     def resize_frame(self, frame):
         (x, y, w, h) = self.border_detector.get_border(frame)

@@ -9,17 +9,20 @@ from detection.grids import GridDetector
 
 
 class CaptureCanvas(FrameCanvas):
-    def __init__(self, window, cap):
-        super().__init__(window, cap)
-
-        self.retry_button = tk.Button(text="Retry", command=self.detect_grid)
-        self.record_button = tk.Button(text="Record", command=self.window.on_recording)
-        self.cancel_button = tk.Button(text="Cancel", command=self.window.on_idle)
-
-        self.border_detector = BorderDetector()
-
+    def __init__(self, window):
+        super().__init__(window)
         self.grid = None
         self.hidden = False
+        self.border_detector = BorderDetector()
+
+        self.retry_button = tk.Button(text="Retry", command=self.detect_grid)
+        self.record_button = tk.Button(
+            text="Record", command=lambda: window.state_manager.record(self)
+        )
+        self.cancel_button = tk.Button(
+            text="Cancel", command=self.window.state_manager.idle
+        )
+
         self.detect_grid()
 
     def pack(self):

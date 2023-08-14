@@ -10,8 +10,10 @@ from components.state_manager import StateManager
 class RootWindow(tk.Tk):
     def __init__(self, cap):
         super().__init__()
+        self.resizable(False, False)
+        self.title("Flybox Scanner")
+
         self.cap = cap
-        self.title = "Flybox Scanner"
         self.width = 640
         self.height = 480
         self.delay = 33

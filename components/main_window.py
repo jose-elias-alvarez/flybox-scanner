@@ -6,18 +6,10 @@ from PIL import Image, ImageTk
 from components.accept_button import AcceptButton
 from components.capture_button import CaptureButton
 from components.hide_button import HideButton
-from detection.frame import crop
+from detection.border import BorderDetector
 
-
-def get_frame_generator(cap):
-    frame_count = 0
-    while True:
-        ok, frame = cap.read()
-        if not ok:
-            break
-        frame = crop(frame)
-        frame_count += 1
-        yield frame, frame_count
+MAX_WIDTH = 640
+MAX_HEIGHT = 480
 
 
 class MainWindow(tk.Tk):
@@ -30,7 +22,10 @@ class MainWindow(tk.Tk):
         self.grid = None
         self.frame_handler = None
 
-        self.generator = get_frame_generator(cap)
+        self.cap = cap
+        self.frame_count = 0
+        self.border_detector = BorderDetector()
+
         first_frame = self.get_frame()[0]
         self.width = first_frame.shape[1]
         self.height = first_frame.shape[0]
@@ -47,7 +42,28 @@ class MainWindow(tk.Tk):
         self.accept_button = AcceptButton(self)
 
     def get_frame(self):
-        return next(self.generator)
+        ok, frame = self.cap.read()
+        if not ok:
+            raise Exception("Could not read frame")
+        frame = self.resize_frame(frame)
+        self.frame_count += 1
+        return frame, self.frame_count
+
+    def resize_frame(self, frame):
+        (x, y, w, h) = self.border_detector.get_border(frame)
+        frame = frame[y : y + h, x : x + w]
+
+        original_height, original_width = frame.shape[:2]
+        aspect_ratio = original_width / original_height
+        if (MAX_WIDTH / aspect_ratio) > MAX_HEIGHT:
+            new_width = int(MAX_HEIGHT * aspect_ratio)
+            new_height = MAX_HEIGHT
+        else:
+            new_height = int(MAX_WIDTH / aspect_ratio)
+            new_width = MAX_WIDTH
+
+        frame = cv2.resize(frame, (new_width, new_height))
+        return frame
 
     def handle_frame(self, frame, frame_count):
         if self.frame_handler is None:

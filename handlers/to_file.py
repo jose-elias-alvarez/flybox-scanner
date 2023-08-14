@@ -65,4 +65,4 @@ class ToFileHandler(MotionHandler):
         row = self.make_row(time)
         self.write_row(row)
 
-        self.distances = self.make_empty_distances()
+        self.distances = make_empty_distances()

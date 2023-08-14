@@ -1,13 +1,11 @@
 import cv2
 
-from components.main_window import MainWindow
+from components.root_window import RootWindow
 
 
 def main():
-    cap = cv2.VideoCapture(1)
-    window = MainWindow(cap)
-
-    window.start()
+    root_window = RootWindow()
+    root_window.start()
 
 
 main()

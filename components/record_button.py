@@ -7,16 +7,18 @@ from handlers.resolution import ResolutionHandler
 from handlers.to_file import ToFileHandler
 
 if TYPE_CHECKING:
-    from components.main_window import MainWindow
+    from components.main_canvas import MainCanvas
+    from components.root_window import RootWindow
 
 
-class AcceptButton(tk.Button):
-    def __init__(self, window: "MainWindow"):
-        super().__init__(window, text="Accept", command=self.accept_frame)
+class RecordButton(tk.Button):
+    def __init__(self, window: "RootWindow", canvas: "MainCanvas"):
+        super().__init__(window, text="Record", command=self.accept_frame)
         self.window = window
+        self.canvas = canvas
 
     def accept_frame(self):
-        to_file_handler = ToFileHandler(self.window.grid)
+        to_file_handler = ToFileHandler(self.canvas.grid)
         resolution_handler = ResolutionHandler(5, to_file_handler)
         resolution_handler.start()
 
@@ -24,9 +26,7 @@ class AcceptButton(tk.Button):
             resolution_handler.handle(e)
             debug_handler(e)
 
-        self.window.frame_handler = FrameHandler(self.window.grid, wrapped_handler)
-        self.window.paused = False
+        self.canvas.frame_handler = FrameHandler(self.canvas.grid, wrapped_handler)
+        self.canvas.paused = False
 
-        self.pack_forget()
-        self.window.capture_button.pack_forget()
-        self.window.hide_button.pack()
+        self.window.on_recording()

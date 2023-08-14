@@ -37,8 +37,14 @@ class RecordCanvas(FrameCanvas):
         self.stop_button.pack()
 
     def toggle_hide(self):
-        self.hidden = not self.hidden
-        self.hide_button.config(text="Show" if self.hidden else "Hide")
+        if self.hidden:
+            self.hidden = False
+            self.hide_button.config(text="Hide")
+            self.config(width=self.window.width, height=self.window.height)
+        else:
+            self.hidden = True
+            self.hide_button.config(text="Show")
+            self.config(width=0, height=0)
 
     def resize_frame(self, frame):
         (x, y, w, h) = self.border_detector.get_border(frame)

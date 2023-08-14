@@ -20,6 +20,9 @@ class FrameCanvas(tk.Canvas):
     def transition(self):
         pass
 
+    def resize(self, width, height):
+        self.config(width=width, height=height)
+
     def resize_frame(self, frame):
         original_height, original_width = frame.shape[:2]
         aspect_ratio = original_width / original_height
@@ -31,6 +34,7 @@ class FrameCanvas(tk.Canvas):
             new_width = self.window.width
 
         frame = cv2.resize(frame, (new_width, new_height))
+        self.resize(new_width, new_height)
         return frame
 
     def get_frame(self):

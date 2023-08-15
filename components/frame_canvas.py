@@ -41,7 +41,8 @@ class FrameCanvas(StateCanvas):
         self.image_id = None
 
     def resize(self, width: int, height: int):
-        self.config(width=width, height=height)
+        if self.winfo_exists():
+            self.config(width=width, height=height)
 
     def resize_frame(self, frame):
         original_height, original_width = frame.shape[:2]

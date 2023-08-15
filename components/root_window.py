@@ -33,8 +33,11 @@ class RootWindow(tk.Tk):
 
         # override error handling
         self.report_callback_exception = self.handle_exception
+        self.after_id = None
 
     def on_close(self):
+        if self.after_id is not None:
+            self.after_cancel(self.after_id)
         self.is_running = False
         self.destroy()
 
@@ -62,7 +65,7 @@ class RootWindow(tk.Tk):
         self.canvas.transition()
 
     def schedule_update(self):
-        self.after(self.delay, self.update)
+        self.after_id = self.after(self.delay, self.update)
 
     def update(self):
         # check for errors from threads

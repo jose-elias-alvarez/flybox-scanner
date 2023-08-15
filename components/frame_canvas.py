@@ -4,38 +4,19 @@ from typing import TYPE_CHECKING
 import cv2
 from PIL import Image, ImageTk
 
+from components.state_canvas import StateCanvas
+
 if TYPE_CHECKING:
     from components.root_window import RootWindow
 
 
-class FrameCanvas(tk.Canvas):
+class FrameCanvas(StateCanvas):
     def __init__(self, window: "RootWindow", **kwargs):
-        super().__init__(width=window.width, height=window.height, **kwargs)
-        self.window = window
+        super().__init__(window, **kwargs)
         self.image_id = None
         self.image = None
 
         self.frame_count = 0
-
-    def transition(self):
-        pass
-
-    def resize(self, width: int, height: int):
-        self.config(width=width, height=height)
-
-    def resize_frame(self, frame):
-        original_height, original_width = frame.shape[:2]
-        aspect_ratio = original_width / original_height
-        if (self.window.width / aspect_ratio) > self.window.height:
-            new_width = int(self.window.height * aspect_ratio)
-            new_height = self.window.height
-        else:
-            new_height = int(self.window.width / aspect_ratio)
-            new_width = self.window.width
-
-        frame = cv2.resize(frame, (new_width, new_height))
-        self.resize(new_width, new_height)
-        return frame
 
     def get_frame(self):
         ok, frame = self.window.cap.read()
@@ -59,8 +40,22 @@ class FrameCanvas(tk.Canvas):
         self.delete(self.image_id)
         self.image_id = None
 
-    def on_init(self):
-        pass
+    def resize(self, width: int, height: int):
+        self.config(width=width, height=height)
+
+    def resize_frame(self, frame):
+        original_height, original_width = frame.shape[:2]
+        aspect_ratio = original_width / original_height
+        if (self.window.width / aspect_ratio) > self.window.height:
+            new_width = int(self.window.height * aspect_ratio)
+            new_height = self.window.height
+        else:
+            new_height = int(self.window.width / aspect_ratio)
+            new_width = self.window.width
+
+        frame = cv2.resize(frame, (new_width, new_height))
+        self.resize(new_width, new_height)
+        return frame
 
     def update(self):
         frame = self.get_frame()[0]

@@ -49,6 +49,10 @@ class RecordCanvas(FrameCanvas):
             self.config(width=0, height=0)
 
     def resize_frame(self, frame):
+        # don't resize if hidden to avoid messing up canvas size
+        if self.hidden:
+            return frame
+
         try:
             border = self.window.app_state["border"]
             (x, y, w, h) = border

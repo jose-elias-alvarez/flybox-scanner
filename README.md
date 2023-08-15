@@ -7,21 +7,31 @@ First, make sure [Anaconda](https://www.anaconda.com) is installed.
 Then, navigate to the project directory and run the following command:
 
 ```sh
-conda env create --prefix ./env --file environment.yml
+conda env create --file environment.yml
 ```
+
+This will create a new environment called `flybox-scanner` containing all the necessary dependencies.
 
 ## Start
 
 Activate the environment:
 
 ```sh
-conda activate ./env
+conda activate flybox-scanner
 ```
 
 Then, run the script:
 
 ```sh
 python main.py
+```
+
+## Uninstall
+
+To uninstall the environment, run the following command:
+
+```sh
+conda env remove --name flybox-scanner
 ```
 
 ## Development

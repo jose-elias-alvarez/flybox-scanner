@@ -1,3 +1,4 @@
+name: flybox-scanner
 channels:
   - conda-forge
   - defaults

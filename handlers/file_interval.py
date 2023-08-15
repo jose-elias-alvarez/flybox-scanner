@@ -29,6 +29,7 @@ class FileIntervalHandler(MotionEventHandler):
         self.interval = interval
         self.index = 0
         self.distances = make_distances()
+        self.last_flush = datetime.datetime.now()
 
         # immediately write file (helps catch errors)
         with open(self.filename, "w") as f:
@@ -45,11 +46,10 @@ class FileIntervalHandler(MotionEventHandler):
         self.distances[event.item.coords] += event.distance
 
     def make_row(self):
-        timestamp = datetime.datetime.now()
-        parts = [
+        row_parts = [
             self.index,
-            timestamp.strftime(DATE_FORMAT),
-            timestamp.strftime(TIME_FORMAT),
+            self.last_flush.strftime(DATE_FORMAT),
+            self.last_flush.strftime(TIME_FORMAT),
             1,  # monitor status (always 1)
             0,  # unused
             1,  # monitor number (should be user-specified)
@@ -60,18 +60,19 @@ class FileIntervalHandler(MotionEventHandler):
         ]
         # add one column for each item in the grid
         for _, col in self.distances:
-            parts.append(int(col))
-        return DELIMITER.join(map(str, parts))
+            row_parts.append(int(col))
+        return DELIMITER.join(map(str, row_parts))
 
-    def write_row(self, row: str):
+    def write_data(self):
+        row = self.make_row()
         with open(self.filename, "a") as f:
             f.write(row + "\n")
 
     def flush(self):
         self.index += 1
+        self.last_flush = datetime.datetime.now()
         try:
-            row = self.make_row()
-            self.write_row(row)
+            self.write_data()
             self.start()
         except Exception as e:
             self.window.errors.put(e)

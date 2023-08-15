@@ -1,9 +1,7 @@
-from sqlite3 import Row
-
 import cv2
 import numpy as np
 
-from custom_types.grid import Grid, Item
+from custom_types.grid import Grid, Item, Row
 
 MAX_ITERATIONS = 100
 MAX_CIRCLES = 96 * 2

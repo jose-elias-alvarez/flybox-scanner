@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 import cv2
 
@@ -19,7 +19,7 @@ class FrameHandler(MotionEvent):
         self.handler = handler
         self.motion_detector = MotionDetector()
 
-        self.points = {}
+        self.points: Dict[tuple, MotionPoint] = {}
         self.average = 0
 
     def find_item(self, contour):

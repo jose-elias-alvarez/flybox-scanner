@@ -30,6 +30,8 @@ class ScanCanvas(FrameCanvas):
             self.window.state_manager.record()
 
         self.record_button = tk.Button(text="Record", command=start_recording)
+        # start disabled
+        self.record_button.config(state=tk.DISABLED)
         self.cancel_button = tk.Button(
             text="Cancel", command=self.window.state_manager.idle
         )
@@ -72,6 +74,7 @@ class ScanCanvas(FrameCanvas):
         grid_detector = GridDetector(frame)
         try:
             self.grid = grid_detector.detect()
+            self.record_button.config(state=tk.NORMAL)
         except Exception as e:
             messagebox.showwarning("Detection Failed", str(e))
 

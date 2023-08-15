@@ -35,4 +35,10 @@ Note that video output is not yet optimized and may differ from webcam output.
 
 ### VS Code
 
+#### Tasks
+
+The repository contains a `Run` task to run `main.py`. To use it, open the command palette and select `Tasks: Run Task`. Then, select `Run`.
+
+#### Interpreter
+
 Upon creating the new environment, VS Code should prompt you to use it for the current workspace. If not, use the `Python: Select Interpreter` command to select the interpreter at `./env/bin/python.`

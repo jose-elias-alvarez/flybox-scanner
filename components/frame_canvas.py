@@ -41,8 +41,12 @@ class FrameCanvas(StateCanvas):
         self.image_id = None
 
     def resize(self, width: int, height: int):
-        if self.winfo_exists():
-            self.config(width=width, height=height)
+        try:
+            if self.winfo_exists():
+                self.config(width=width, height=height)
+        except tk.TclError:
+            # operating on destroyed canvas
+            pass
 
     def resize_frame(self, frame):
         original_height, original_width = frame.shape[:2]

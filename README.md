@@ -12,7 +12,7 @@ conda env create --file environment.yml
 
 This will create a new environment called `flybox-scanner` containing all the necessary dependencies.
 
-## Start
+### Start
 
 Activate the environment:
 
@@ -26,7 +26,7 @@ Then, run the script:
 python main.py
 ```
 
-## Uninstall
+### Uninstall
 
 To uninstall the environment, run the following command:
 
@@ -34,7 +34,36 @@ To uninstall the environment, run the following command:
 conda env remove --name flybox-scanner
 ```
 
+## Parameters
+
+At the moment, parameters are hard-coded into the following Python source files:
+
+- `main.py`: controls source and window parameters
+
+### Detection
+
+- `detection/border.py`: controls the detection of borders in frames (used to "crop" the flybox background)
+- `detection/grids.py`: controls the detection of wells
+- `detection/motion.py`: controls the detection of fly motion
+
+### Handlers
+
+- `handlers/debug.py`: controls the display of debug info in the recording window (e.g. wells, flies)
+- `handlers/file_interval.py`: controls the output of data into a file at a given interval
+- `handlers/frame.py`: controls the handling of detected motion and its conversion into motion events
+
 ## Development
+
+### Architecture
+
+UI logic lives in `components/`. The main UI entrypoint is `components/root_window.py`, which is responsible for the main event loop and for mounting and unmounting "state canvases".
+
+Each state canvas is responsible for a specific UI state, as defined in `components/state_manager.py`:
+
+- `components/idle_canvas.py`: initial state, displays a source preview and state transition buttons
+- `components/select_webcam_canvas.py`: active when selecting a webcam source
+- `components/scan_canvas.py`: active when "scanning" (running grid detection on) the source, allows transitioning to the recording state
+- `components/record_canvas.py`: active when recording, shows a (hideable) preview
 
 ### Videos
 

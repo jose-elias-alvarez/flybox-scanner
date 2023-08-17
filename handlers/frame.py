@@ -8,6 +8,18 @@ from detection.motion import MotionDetector
 if TYPE_CHECKING:
     from components.root_window import RootWindow
 
+# this class handles motion detected in frames and emits motion events
+# at the moment, this class only handles a single motion event per grid item per frame,
+# so we can only handle one fly per well, but this can be changed in the future
+# see the logic in handle_contour for more info
+
+# we can keep a running average of the size of detected contours
+# to filter out detected contours that are too large or too small,
+# since these are likely false positives
+SHOULD_FILTER_BY_AVERAGE = True
+FILTER_BY_AVERAGE_BOTTOM = 0.33
+FILTER_BY_AVERAGE_TOP = 3
+
 
 class FrameHandler(MotionEvent):
     def __init__(self, window: "RootWindow", handler: MotionEventHandler):
@@ -33,12 +45,16 @@ class FrameHandler(MotionEvent):
         item = self.find_item(contour)
         if item is None:
             return
+
         size = cv2.contourArea(contour)
-        # compare size to average
-        if self.average > 0:
-            if size < 0.33 * self.average or size > 3 * self.average:
-                return
-        self.average = (self.average + size) / 2
+        if SHOULD_FILTER_BY_AVERAGE:
+            if self.average > 0:
+                if (
+                    size < FILTER_BY_AVERAGE_BOTTOM * self.average
+                    or size > FILTER_BY_AVERAGE_TOP * self.average
+                ):
+                    return
+            self.average = (self.average + size) / 2
 
         point = MotionPoint(contour, item, frame_count)
         coords = point.item.coords
@@ -47,7 +63,8 @@ class FrameHandler(MotionEvent):
             self.points[coords] = point
             return
 
-        # if we have 2 points in the same frame, only keep the larger one
+        # if we have multiple points in the same frame, we only want to keep the largest one
+        # we'll need to change this if we ever want to capture multiple flies in a single well
         if point.frame_count == last_point.frame_count:
             if cv2.contourArea(point.contour) < cv2.contourArea(last_point.contour):
                 return
@@ -56,7 +73,7 @@ class FrameHandler(MotionEvent):
         distance = cv2.matchShapes(
             point.contour, last_point.contour, cv2.CONTOURS_MATCH_I1, 0
         )
-        # emit event
+
         event = MotionEvent(distance, point, item, frame)
         self.handler.handle(event)
 

@@ -13,5 +13,5 @@ class StateCanvas(tk.Canvas):
     def transition(self):
         pass
 
-    def update():
+    def update(self):
         pass

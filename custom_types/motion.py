@@ -17,5 +17,5 @@ class MotionEvent:
 
 
 class MotionEventHandler:
-    def handle(event: "MotionEvent") -> None:
+    def handle(self, event: MotionEvent) -> None:
         raise NotImplementedError()

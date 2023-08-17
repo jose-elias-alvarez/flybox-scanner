@@ -1,6 +1,13 @@
 import cv2
 
+# this class crops a given frame to the area of interest
+# this is desriable because it essentially increases the usable area of the video,
+# making everything more accurate without increasing processing time
+
+# since the inside of the flybox is dark, we use a simple threshold
 # 0 is absolute black, 255 is absolute white
+# if the frame is still too large, we can set this to a higher value
+# (which should be pretty safe, since the area of interest is so bright)
 THRESH = 40
 
 
@@ -15,6 +22,6 @@ class BorderDetector:
             cnt = max(contours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(cnt)
         else:
-            # keep original frame dimensions
+            # if we can't detect a border, just use the whole frame
             x, y, w, h = (0, 0, frame.shape[1], frame.shape[0])
         return (x, y, w, h)

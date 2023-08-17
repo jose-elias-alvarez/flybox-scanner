@@ -1,43 +1,99 @@
+from typing import TYPE_CHECKING
+
 import cv2
 import numpy as np
 
 from custom_types.grid import Grid, Item, Row
 
-MAX_ITERATIONS = 100
-MAX_CIRCLES = 96 * 2
-MIN_CIRCLES = 12
+if TYPE_CHECKING:
+    from components.root_window import RootWindow
 
+# this class is responsible for detecting a grid of items
+# the basic algorithm is as follows:
+# 1. run a crude circle detection on the image
+# 2. get the average radius of the detected circles
+# 3. update the average radius and keep running until it converges
+# 4. use the converged radius to run a more accurate circle detection
+# 5. convert each circle into a rectangular grid item
+# 6. sort the items into rows and columns
+
+# ideally, this should have adjustable trackbars to allow for easy tuning,
+# but for now you can have fun playing around with the constants below
+
+# doing this greatly improves accuracy, especially in bad lighting conditions
+SHOULD_EQUALIZE_HISTOGRAM = True
+# cv2 docs recommend using blurring,
+# but it seems to make the first detection phase less consistent
+# we could play around with the parameters in process_frame()
+SHOULD_BLUR_FRAME = True
+# apparently powerful, but very slow
+SHOULD_APPLY_BILATERAL_FILTER = True
+
+# param1: filter out less prominent circles (lower = more circles)
+# param2: threshold for circle detection (lower = more circles)
+# for the initial detection, we want to be conservative
+INITIAL_DETECTION_PARAM_1 = 40
+INITIAL_DETECTION_PARAM_2 = 50
+# these values should be loose, since the initial detection is very crude
+INITIAL_DETECTION_LOWER_BOUND = 0.5
+INITIAL_DETECTION_UPPER_BOUND = 1.5
+
+# these are used as a starting point for the first detection phase
+# and don't influence the final detected circle count
+MAX_INITIAL_CIRCLES = 96 * 2
+MIN_INITIAL_CIRCLES = 12
+# give up after this many iterations
+MAX_ITERATIONS = 100
+# point at which we consider the average radius to have converged
+# lowering increases accuracy, but increases runtime
+# and also increases the chance of getting stuck in a local minimum
 CONVERGENCE_THRESHOLD = 0.0005
+# if our new average is much larger than the old average,
+# we most likely have a bad detection, so we use this to ignore it
+FILTER_AVERAGE_THRESHOLD = 1.05
+
+# for our final detection, we're using the estimated average radius
+# so we can keep these values tighter
+FINAL_DETECTION_LOWER_BOUND = 0.85
+FINAL_DETECTION_UPPER_BOUND = 1.15
+# same effect as param1 and param2 above, but since we have a better idea of the average radius,
+# we can be more aggressive
+FINAL_DETECTION_PARAM_1 = 10
+FINAL_DETECTION_PARAM_2 = 20
+
+# when converting circles to rectangles,
+# we want to account for variations in lighting by using a weighted average
+AVERAGE_RADIUS_WEIGHT = 0.75
 
 
 class GridDetector:
     def __init__(self, frame):
+        if SHOULD_EQUALIZE_HISTOGRAM:
+            self.clahe = cv2.createCLAHE(clipLimit=4, tileGridSize=(8, 8))
         self.frame = frame
         self.processed_frame = self.process_frame()
 
     def process_frame(self):
-        clahe = cv2.createCLAHE(clipLimit=4, tileGridSize=(8, 8))
+        # implementation detail: I tried using the average of the first X frames,
+        # but it didn't seem to make a difference, even at high values like 1000
         processed_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-        processed_frame = clahe.apply(processed_frame)
-        # it's recommended to use blurring here,
-        # but it seems to make the first detection phase less consistent
-        # processed_frame = cv2.GaussianBlur(processed_frame, (5, 5), 0)
+        if SHOULD_EQUALIZE_HISTOGRAM:
+            processed_frame = self.clahe.apply(processed_frame)
+        if SHOULD_BLUR_FRAME:
+            processed_frame = cv2.medianBlur(processed_frame, 5)
+        if SHOULD_APPLY_BILATERAL_FILTER:
+            processed_frame = cv2.bilateralFilter(processed_frame, 9, 75, 75)
         return processed_frame
 
     def get_approximate_average_radius(self):
-        # use conservative values
-        param1 = 40
-        param2 = 50
-        # we start by assuming that the frame contains at most MAX_CIRCLES
-        # and at least MIN_CIRCLES
-        max_radius = int(min(self.frame.shape[0], self.frame.shape[1]) / MIN_CIRCLES)
-        min_radius = int(min(self.frame.shape[0], self.frame.shape[1]) / MAX_CIRCLES)
+        max_radius = int(
+            min(self.frame.shape[0], self.frame.shape[1]) / MIN_INITIAL_CIRCLES
+        )
+        min_radius = int(
+            min(self.frame.shape[0], self.frame.shape[1]) / MAX_INITIAL_CIRCLES
+        )
         min_dist = min_radius * 2
-        # on each iteration, we update the parameters
-        # using the average radius of the circles we detected
         iterations = 0
-        # we also keep track of the last average radius so we can exit early
-        # once we've converged
         last_average_radius = float("inf")
         while iterations < MAX_ITERATIONS:
             iterations += 1
@@ -46,26 +102,21 @@ class GridDetector:
                 cv2.HOUGH_GRADIENT,
                 1,
                 min_dist,
-                param1=param1,
-                param2=param2,
+                param1=INITIAL_DETECTION_PARAM_1,
+                param2=INITIAL_DETECTION_PARAM_2,
                 minRadius=min_radius,
                 maxRadius=max_radius,
             )
             if detected is None:
                 continue
             average_radius = np.average(detected[0, :, 2])
-            # if our new average is (almost) the same as the old average, we're done
+            if average_radius > last_average_radius * FILTER_AVERAGE_THRESHOLD:
+                continue
             if abs(average_radius - last_average_radius) < CONVERGENCE_THRESHOLD:
                 break
-            # if our new average is much larger than the old average,
-            # we most likely have a bad detection,
-            # so we ignore it and try again
-            if average_radius > last_average_radius * 1.05:
-                continue
 
-            # update values
-            min_radius = int(average_radius * 0.5)
-            max_radius = int(average_radius * 1.5)
+            min_radius = int(average_radius * INITIAL_DETECTION_UPPER_BOUND)
+            max_radius = int(average_radius * INITIAL_DETECTION_LOWER_BOUND)
             min_dist = min_radius * 2
             last_average_radius = average_radius
 
@@ -75,17 +126,16 @@ class GridDetector:
 
     def detect_circles(self):
         approximate_average_radius = self.get_approximate_average_radius()
-        # now that we have an approximate radius, we can keep our radius tighter
-        min_radius = int(approximate_average_radius * 0.85)
-        max_radius = int(approximate_average_radius * 1.15)
+        min_radius = int(approximate_average_radius * FINAL_DETECTION_LOWER_BOUND)
+        max_radius = int(approximate_average_radius * FINAL_DETECTION_UPPER_BOUND)
         min_dist = min_radius * 2
         detected = cv2.HoughCircles(
             self.processed_frame,
             cv2.HOUGH_GRADIENT,
             1,
             min_dist,
-            param1=10,
-            param2=20,  # now we can make this looser
+            param1=FINAL_DETECTION_PARAM_1,
+            param2=FINAL_DETECTION_PARAM_2,
             minRadius=min_radius,
             maxRadius=max_radius,
         )
@@ -97,13 +147,11 @@ class GridDetector:
     def detect(self):
         circles = self.detect_circles()
         average_radius = np.average(circles[:, 2])
-        # first goal: convert each circle into a rectangular item
-        # and organize them into rows in a grid
         grid = [[]]
         for x, y, radius in sorted(circles, key=lambda circle: circle[1]):
-            # lighting can cause variations beyond what we expect,
-            # so we smooth out the radius using a weighted average
-            radius = (radius * 0.25) + (average_radius * 0.75)
+            radius = (radius * (1 - AVERAGE_RADIUS_WEIGHT)) + (
+                average_radius * AVERAGE_RADIUS_WEIGHT
+            )
             item = (
                 (
                     x - radius,
@@ -129,17 +177,14 @@ class GridDetector:
             # case 3: item is close enough to last item, so we're still in the same row
             row.append(item)
 
-        # next, we sort each row on the x axis
+        # sort each row by x coordinate
         for row in grid:
             row.sort(key=lambda item: item[0][0])
 
-        # finally, we want to convert each raw element into a class instance
+        # convert each raw element into a class instance
+        # this is arguably not really necessary and is a good candidate for optimization
+        # (and a good argument against premature optimization)
         for row_index, row in enumerate(grid):
-            # validate that each row contains the same number of items
-            if len(row) != len(grid[0]):
-                raise Exception(
-                    f"Invalid number of items in row (expected {len(grid[0])}, got {len(row)})"
-                )
             for col_index, item in enumerate(row):
                 row[col_index] = Item(item, (row_index, col_index))
             grid[row_index] = Row(row)

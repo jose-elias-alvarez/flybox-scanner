@@ -5,18 +5,19 @@ from typing import TYPE_CHECKING
 
 from custom_types.motion import MotionEvent, MotionEventHandler
 
-OUT_DIR = "output"
-DELIMITER = "\t"
-DATE_FORMAT = "%d %b %y"
-TIME_FORMAT = "%H:%M:%S"
-DEFAULT_INTERVAL = 5
-
 if TYPE_CHECKING:
     from components.root_window import RootWindow
 
+# this class handles motion events and flushes them to the specified file at the specified interval
 
-def make_distances():
-    return defaultdict(lambda: 0)
+# 30 is the canonical interval, but you may want to lower this for testing
+DEFAULT_INTERVAL = 30
+
+# output file options
+# see the make_row method for more info
+DELIMITER = "\t"
+DATE_FORMAT = "%d %b %y"
+TIME_FORMAT = "%H:%M:%S"
 
 
 # captures motion events and flushes them to the specified file at the specified interval
@@ -28,10 +29,10 @@ class FileIntervalHandler(MotionEventHandler):
         self.filename = filename
         self.interval = interval
         self.index = 0
-        self.distances = make_distances()
+        self.distances = self.make_distances()
         self.last_flush = datetime.datetime.now()
 
-        # immediately write file (helps catch errors)
+        # immediately write file (provides better feedback, and helps catch errors)
         with open(self.filename, "w") as f:
             f.write("")
 
@@ -45,6 +46,9 @@ class FileIntervalHandler(MotionEventHandler):
     def handle(self, event: MotionEvent):
         self.distances[event.item.coords] += event.distance
 
+    def make_distances(self):
+        return defaultdict(lambda: 0)
+
     def make_row(self):
         row_parts = [
             self.index,
@@ -52,7 +56,7 @@ class FileIntervalHandler(MotionEventHandler):
             self.last_flush.strftime(TIME_FORMAT),
             1,  # monitor status (always 1)
             0,  # unused
-            1,  # monitor number (should be user-specified)
+            1,  # monitor number (should be user-specified in the future)
             0,  # unused
             "Ct",  # ??
             0,  # unused
@@ -75,6 +79,7 @@ class FileIntervalHandler(MotionEventHandler):
             self.write_data()
             self.start()
         except Exception as e:
+            # since we're running in a thread, we add them to the queue to be handled on the next loop
             self.window.errors.put(e)
 
-        self.distances = make_distances()
+        self.distances = self.make_distances()

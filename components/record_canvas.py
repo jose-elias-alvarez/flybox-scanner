@@ -28,15 +28,19 @@ class RecordCanvas(FrameCanvas):
         wrapped_handler = DebugHandler(file_interval_handler)
         self.frame_handler = FrameHandler(window, wrapped_handler)
 
+        self.button_frame = tk.Frame(self.window)
         self.stop_button = tk.Button(
-            text="Stop", command=self.window.state_manager.idle
+            self.button_frame, text="Stop", command=self.window.state_manager.idle
         )
-        self.hide_button = tk.Button(text="Hide", command=self.toggle_hide)
+        self.hide_button = tk.Button(
+            self.button_frame, text="Hide", command=self.toggle_hide
+        )
 
-    def pack(self):
-        super().pack()
-        self.hide_button.pack()
-        self.stop_button.pack()
+    def layout(self):
+        super().grid()
+        self.button_frame.grid(row=1, column=0)
+        self.hide_button.grid(row=0, column=0)
+        self.stop_button.grid(row=0, column=1)
 
     def toggle_hide(self):
         if self.hidden:

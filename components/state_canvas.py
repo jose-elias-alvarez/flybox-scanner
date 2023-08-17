@@ -10,8 +10,9 @@ class StateCanvas(tk.Canvas):
         super().__init__(width=window.width, height=window.height, **kwargs)
         self.window = window
 
-    def transition(self):
-        pass
+    def layout(self):
+        # assume that all instances have a layout for now
+        raise NotImplementedError
 
     def update(self):
         pass

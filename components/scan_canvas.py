@@ -22,27 +22,32 @@ class ScanCanvas(FrameCanvas):
         self.hidden = False
         self.border_detector = BorderDetector()
 
-        self.rescan_button = tk.Button(text="Rescan", command=self.detect_grid)
-
         def start_recording():
             # only set grid here now that it's confirmed
             self.window.app_state["grid"] = self.grid
             self.window.state_manager.record()
 
-        self.record_button = tk.Button(text="Record", command=start_recording)
+        self.button_frame = tk.Frame()
+        self.rescan_button = tk.Button(
+            self.button_frame, text="Rescan", command=self.detect_grid
+        )
+        self.record_button = tk.Button(
+            self.button_frame, text="Record", command=start_recording
+        )
         # start disabled
         self.record_button.config(state=tk.DISABLED)
         self.cancel_button = tk.Button(
-            text="Cancel", command=self.window.state_manager.idle
+            self.button_frame, text="Cancel", command=self.window.state_manager.idle
         )
 
         self.detect_grid()
 
-    def pack(self):
-        super().pack()
-        self.rescan_button.pack()
-        self.record_button.pack()
-        self.cancel_button.pack()
+    def layout(self):
+        super().grid()
+        self.button_frame.grid(row=1, column=0)
+        self.rescan_button.grid(row=0, column=0)
+        self.record_button.grid(row=0, column=1)
+        self.cancel_button.grid(row=0, column=2)
 
     def get_frame(self):
         frame, frame_count = super().get_frame()

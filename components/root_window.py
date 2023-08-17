@@ -69,8 +69,7 @@ class RootWindow(tk.Tk):
     def set_canvas(self, canvas_factory: Callable[[], StateCanvas]):
         self.wipe()
         self.canvas = canvas_factory()
-        self.canvas.pack()
-        self.canvas.transition()
+        self.canvas.layout()
 
     def schedule_update(self):
         self.after_id = self.after(self.delay, self.update)

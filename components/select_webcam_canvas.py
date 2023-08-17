@@ -29,16 +29,18 @@ class SelectWebcamCanvas(FrameCanvas):
         self.selected_source = tk.StringVar()
         self.selected_source.set("Webcam 1")
 
-        # on macOS, indeterminate mode doesn't seem to work
-        self.progress = ttk.Progressbar(window, mode="indeterminate")
-        self.dropdown = None
+        # on macOS, at least, indeterminate mode doesn't seem to work
+        self.button_frame = tk.Frame(self.window)
+        self.progress = ttk.Progressbar(self.button_frame, mode="indeterminate")
         self.select_button = tk.Button(
-            self.window, text="Select", command=self.window.state_manager.idle
+            self.button_frame, text="Select", command=self.window.state_manager.idle
         )
+        self.dropdown = None  # easier to create this later
 
-    def pack(self):
-        super().pack()
-        self.progress.pack(fill=tk.BOTH, expand=True)
+    def layout(self):
+        super().grid()
+        self.button_frame.grid(row=1, column=0, sticky="ew")
+        self.progress.grid(row=0, column=0, columnspan=3, sticky="ew")
         self.progress.start()
 
     def check_thread(self):
@@ -46,7 +48,7 @@ class SelectWebcamCanvas(FrameCanvas):
             self.window.after(self.check_interval, self.check_thread)
         else:
             self.progress.stop()
-            self.progress.pack_forget()
+            self.progress.grid_forget()
 
     def get_webcams(self):
         index = 1
@@ -60,20 +62,22 @@ class SelectWebcamCanvas(FrameCanvas):
             index += 1
 
         if len(self.sources) == 1:
-            messagebox.showinfo("Select Webcam", "Only 1 webcam found!")
-            self.window.after_idle(self.window.state_manager.idle)
-        else:
-            self.window.after_idle(self.update_dropdown)
+            # messagebox.showinfo("Select Webcam", "Only 1 webcam found!")
+            # self.window.after_idle(self.window.state_manager.idle)
+            pass
+
+        self.window.after_idle(self.update_dropdown)
 
     def update_dropdown(self):
         self.dropdown = tk.OptionMenu(
-            self.window,
+            self.button_frame,
             self.selected_source,
             *["Webcam " + str(i + 1) for i in self.sources],
             command=self.change_webcam,
         )
-        self.dropdown.pack()
-        self.select_button.pack()
+        self.button_frame.grid_configure(sticky="")
+        self.dropdown.grid(row=0, column=0)
+        self.select_button.grid(row=0, column=1)
 
     def change_webcam(self, selected_source: str):
         self.current_source = int(selected_source.split(" ")[1]) - 1

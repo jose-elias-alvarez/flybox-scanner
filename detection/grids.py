@@ -25,7 +25,7 @@ SHOULD_EQUALIZE_HISTOGRAM = True
 # cv2 docs recommend using blurring,
 # but it seems to make the first detection phase less consistent
 # we could play around with the parameters in process_frame()
-SHOULD_BLUR_FRAME = True
+SHOULD_BLUR_FRAME = False
 # apparently powerful, but very slow
 SHOULD_APPLY_BILATERAL_FILTER = True
 

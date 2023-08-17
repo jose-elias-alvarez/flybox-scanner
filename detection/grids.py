@@ -27,7 +27,8 @@ SHOULD_EQUALIZE_HISTOGRAM = True
 # we could play around with the parameters in process_frame()
 SHOULD_BLUR_FRAME = False
 # apparently powerful, but very slow
-SHOULD_APPLY_BILATERAL_FILTER = True
+# also doesn't work well w/ smaller wells
+SHOULD_APPLY_BILATERAL_FILTER = False
 
 # param1: filter out less prominent circles (lower = more circles)
 # param2: threshold for circle detection (lower = more circles)
@@ -63,7 +64,9 @@ FINAL_DETECTION_PARAM_2 = 20
 
 # when converting circles to rectangles,
 # we want to account for variations in lighting by using a weighted average
-AVERAGE_RADIUS_WEIGHT = 0.75
+# setting this to 1 will make all circles the same size,
+# while setting it to 0 will let all circles keep their original detected size
+AVERAGE_RADIUS_ALPHA = 0.75
 
 
 class GridDetector:
@@ -149,8 +152,8 @@ class GridDetector:
         average_radius = np.average(circles[:, 2])
         grid = [[]]
         for x, y, radius in sorted(circles, key=lambda circle: circle[1]):
-            radius = (radius * (1 - AVERAGE_RADIUS_WEIGHT)) + (
-                average_radius * AVERAGE_RADIUS_WEIGHT
+            radius = (radius * (1 - AVERAGE_RADIUS_ALPHA)) + (
+                average_radius * AVERAGE_RADIUS_ALPHA
             )
             item = (
                 (

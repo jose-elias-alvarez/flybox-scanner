@@ -9,7 +9,6 @@ from handlers.frame import FrameHandler
 
 if TYPE_CHECKING:
     from components.root_window import RootWindow
-    from components.scan_canvas import ScanCanvas
 
 
 class RecordCanvas(FrameCanvas):

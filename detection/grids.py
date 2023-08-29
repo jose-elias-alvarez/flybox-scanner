@@ -1,12 +1,7 @@
-from typing import TYPE_CHECKING
-
 import cv2
 import numpy as np
 
 from custom_types.grid import Grid, Item, Row
-
-if TYPE_CHECKING:
-    from components.root_window import RootWindow
 
 # this class is responsible for detecting a grid of items
 # the basic algorithm is as follows:

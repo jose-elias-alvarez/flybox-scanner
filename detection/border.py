@@ -1,7 +1,7 @@
 import cv2
 
 # this class crops a given frame to the area of interest
-# this is desriable because it essentially increases the usable area of the video,
+# this is desirable because it essentially increases the usable area of the video,
 # making everything more accurate without increasing processing time
 
 # since the inside of the flybox is dark, we use a simple threshold

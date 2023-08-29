@@ -4,6 +4,7 @@ import cv2
 
 from custom_types.motion import MotionEvent, MotionEventHandler, MotionPoint
 from detection.motion import MotionDetector
+from utils.geometry import calculate_distance_between, get_contour_center
 
 if TYPE_CHECKING:
     from components.root_window import RootWindow
@@ -69,10 +70,11 @@ class FrameHandler(MotionEvent):
             if cv2.contourArea(point.contour) < cv2.contourArea(last_point.contour):
                 return
 
-        # calculate distance between two contours
-        distance = cv2.matchShapes(
-            point.contour, last_point.contour, cv2.CONTOURS_MATCH_I1, 0
-        )
+        center = get_contour_center(contour)
+        last_center = get_contour_center(last_point.contour)
+        if not (center and last_center):
+            return
+        distance = calculate_distance_between(center, last_center)
 
         event = MotionEvent(distance, point, item, frame)
         self.handler.handle(event)

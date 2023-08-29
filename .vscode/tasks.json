@@ -12,6 +12,33 @@
         "reveal": "silent",
         "clear": false
       }
+    },
+    {
+      "label": "Run video",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["${workspaceFolder}/main.py"],
+      "options": {
+        "env": {
+          "DEFAULT_SOURCE": "videos/${input:video}.mp4",
+          "OUTPUT_FILE": "videos/${input:video}_output.txt"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "clear": false
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "video",
+      "type": "pickString",
+      "description": "Select video to scan",
+      "options": ["Fly", "DoubleFly"],
+      "default": "Fly"
     }
   ]
 }

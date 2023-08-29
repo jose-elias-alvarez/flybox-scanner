@@ -1,4 +1,5 @@
 import tkinter as tk
+from os import environ
 from tkinter import filedialog
 from typing import TYPE_CHECKING
 
@@ -17,7 +18,7 @@ class RecordCanvas(FrameCanvas):
         self.hidden = False
 
         try:
-            filename = window.app_state["filename"]
+            filename = environ["OUTPUT_FILE"]
         except KeyError:
             filename = filedialog.asksaveasfilename(defaultextension=".txt")
 

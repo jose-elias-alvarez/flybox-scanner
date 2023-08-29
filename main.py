@@ -1,3 +1,5 @@
+from os import environ
+
 import cv2
 
 from components.root_window import RootWindow
@@ -17,14 +19,14 @@ DELAY = 30
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
 
-DEFAULT_SOURCE = 0  # first webcam
+DEFAULT_SOURCE = environ.get("DEFAULT_SOURCE", 0)
 
 
 def main():
     cap = cv2.VideoCapture()
     cap.open(DEFAULT_SOURCE)
     if not cap.isOpened():
-        raise IOError("Cannot open webcam")
+        raise IOError(f"Cannot open video source {DEFAULT_SOURCE}")
     root_window = RootWindow(
         cap,
         title=WINDOW_TITLE,

@@ -25,12 +25,17 @@ class FileIntervalHandler(MotionEventHandler):
     def __init__(self, window: "RootWindow", filename: str, interval=DEFAULT_INTERVAL):
         self.window = window
         self.window.cleanup.put(self.cancel)
-
+        try:
+            self.grid = self.window.app_state["grid"]
+        except KeyError:
+            raise Exception("Grid not initialized")
         self.filename = filename
         self.interval = interval
         self.index = 0
         self.distances = self.make_distances()
         self.last_flush = datetime.datetime.now()
+        
+
 
         # immediately write file (provides better feedback, and helps catch errors)
         with open(self.filename, "w") as f:
@@ -47,7 +52,19 @@ class FileIntervalHandler(MotionEventHandler):
         self.distances[event.item.coords] += event.distance
 
     def make_distances(self):
-        return defaultdict(lambda: 0)
+        # Assuming self.grid.rows returns a list of rows and each row has a method or property called "items" 
+        # that returns a list of grid items. Further assuming each grid item has a property called "coords" 
+        # which is a tuple representing its coordinates.
+        first_coord = self.grid.rows[0].items[0].coords
+        last_row = self.grid.rows[-1]
+        last_coord = last_row.items[-1].coords
+
+        distances = {}
+        for i in range(first_coord[0], last_coord[0] + 1):
+            for j in range(first_coord[1], last_coord[1] + 1):
+                distances[(i, j)] = 0
+
+        return distances
 
     def make_row(self):
         row_parts = [
@@ -63,8 +80,8 @@ class FileIntervalHandler(MotionEventHandler):
             0,  # likely unused
         ]
         # add one column for each item in the grid
-        for _, col in self.distances:
-            row_parts.append(int(col))
+        for key, distance in sorted(self.distances.items()):
+            row_parts.append(int(distance))
         return DELIMITER.join(map(str, row_parts))
 
     def write_data(self):

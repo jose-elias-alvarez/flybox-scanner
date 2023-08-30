@@ -4,7 +4,6 @@ import cv2
 
 from custom_types.motion import MotionEvent, MotionEventHandler, MotionPoint
 from detection.motion import MotionDetector
-from utils.geometry import calculate_distance_between, get_contour_center
 
 if TYPE_CHECKING:
     from components.root_window import RootWindow
@@ -63,20 +62,21 @@ class FrameHandler(MotionEvent):
         if last_point is None:
             self.points[coords] = point
             return
+        if not (point.center and last_point.center):
+            return
 
         # if we have multiple points in the same frame, we only want to keep the largest one
         # we'll need to change this if we ever want to capture multiple flies in a single well
-        if point.frame_count == last_point.frame_count:
-            if cv2.contourArea(point.contour) < cv2.contourArea(last_point.contour):
-                return
-
-        center = get_contour_center(contour)
-        last_center = get_contour_center(last_point.contour)
-        if not (center and last_center):
+        if point.frame_count == last_point.frame_count and point.area < last_point.area:
             return
-        distance = calculate_distance_between(center, last_center)
 
-        event = MotionEvent(distance, point, item, frame)
+        # emit event
+        event = MotionEvent(
+            point=point,
+            last_point=last_point,
+            item=item,
+            frame=frame,
+        )
         self.handler.handle(event)
 
         self.points[coords] = point

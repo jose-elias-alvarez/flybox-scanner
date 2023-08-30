@@ -15,12 +15,12 @@ WELL_THICKNESS = 1
 SHOULD_DRAW_FLY = True
 FLY_COLOR = (255, 0, 0)
 FLY_THICKNESS = 2
+LAST_FLY_COLOR = (128, 128, 128)
+LAST_FLY_THICKNESS = 1
 
 SHOULD_DRAW_DISTANCE = True
 DISTANCE_COLOR = (0, 0, 255)
 DISTANCE_THICKNESS = 1
-# only show distances above this threshold
-DISTANCE_THRESHOLD = 0.05
 
 SHOULD_PRINT = False  # this is really noisy, so it's disabled by default
 
@@ -45,18 +45,19 @@ class DebugHandler(MotionEventHandler):
         cv2.drawContours(
             event.frame, [event.point.contour], -1, FLY_COLOR, FLY_THICKNESS
         )
+        cv2.drawContours(
+            event.frame,
+            [event.last_point.contour],
+            -1,
+            LAST_FLY_COLOR,
+            LAST_FLY_THICKNESS,
+        )
 
     def draw_distance(self, event: MotionEvent):
-        if event.distance < DISTANCE_THRESHOLD:
-            return
-        start_point = event.point.item.bounds[0]
-        start_point = (int(start_point[0]), int(start_point[1]))
-        cv2.putText(
+        cv2.line(
             event.frame,
-            f"{event.distance:.2f}",
-            start_point,
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
+            (int(event.point.center[0]), int(event.point.center[1])),
+            (int(event.last_point.center[0]), int(event.last_point.center[1])),
             DISTANCE_COLOR,
             DISTANCE_THICKNESS,
         )

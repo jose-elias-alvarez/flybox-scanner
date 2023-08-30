@@ -1,6 +1,6 @@
 import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox, ttk
 from typing import TYPE_CHECKING
 
 import cv2
@@ -62,9 +62,8 @@ class SelectWebcamCanvas(FrameCanvas):
             index += 1
 
         if len(self.sources) == 1:
-            # messagebox.showinfo("Select Webcam", "Only 1 webcam found!")
-            # self.window.after_idle(self.window.state_manager.idle)
-            pass
+            messagebox.showinfo("Select Webcam", "Only 1 webcam found!")
+            self.window.after_idle(self.window.state_manager.idle)
 
         self.window.after_idle(self.update_dropdown)
 

@@ -13,12 +13,9 @@ if TYPE_CHECKING:
 # so we can only handle one fly per well, but this can be changed in the future
 # see the logic in handle_contour for more info
 
-# we can keep a running average of the size of detected contours
-# to filter out detected contours that are too large or too small,
-# since these are likely false positives
-SHOULD_FILTER_BY_AVERAGE = True
-FILTER_BY_AVERAGE_BOTTOM = 0.33
-FILTER_BY_AVERAGE_TOP = 3
+# filter out contours that are too small
+# note that our current camera resolution means this filters out wings
+MIN_CONTOUR_SIZE = 2
 
 
 class FrameHandler(MotionEvent):
@@ -46,17 +43,9 @@ class FrameHandler(MotionEvent):
         if item is None:
             return
 
-        size = cv2.contourArea(contour)
-        if SHOULD_FILTER_BY_AVERAGE:
-            if self.average > 0:
-                if (
-                    size < FILTER_BY_AVERAGE_BOTTOM * self.average
-                    or size > FILTER_BY_AVERAGE_TOP * self.average
-                ):
-                    return
-            self.average = (self.average + size) / 2
-
         point = MotionPoint(contour, item, frame_count)
+        if point.area < MIN_CONTOUR_SIZE:
+            return
         coords = point.item.coords
         last_point = self.points.get(coords)
         if last_point is None:

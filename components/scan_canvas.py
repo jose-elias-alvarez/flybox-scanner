@@ -60,10 +60,11 @@ class ScanCanvas(FrameCanvas):
 
         for row in self.grid.rows:
             for item in row.items:
+                (start_point, end_point) = item.bounds
                 cv2.rectangle(
                     frame,
-                    (int(item.start_point[0]), int(item.start_point[1])),
-                    (int(item.end_point[0]), int(item.end_point[1])),
+                    (int(start_point[0]), int(start_point[1])),
+                    (int(end_point[0]), int(end_point[1])),
                     (0, 255, 0),
                     thickness=1,
                 )

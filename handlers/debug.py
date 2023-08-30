@@ -30,7 +30,7 @@ class DebugHandler(MotionEventHandler):
         self.handler = handler
 
     def draw_well(self, event: MotionEvent):
-        (start, end) = (event.point.item.start_point, event.point.item.end_point)
+        (start, end) = event.point.item.bounds
         (x1, y1) = start
         (x2, y2) = end
         cv2.rectangle(

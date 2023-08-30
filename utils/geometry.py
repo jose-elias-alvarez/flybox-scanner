@@ -8,7 +8,8 @@ def get_contour_center(contour):
         cX = M["m10"] / M["m00"]
         cY = M["m01"] / M["m00"]
     except ZeroDivisionError:
-        return None
+        # contour area is 0, so let's say the first point is the center
+        return (contour[0][0][0], contour[0][0][1])
     return (cX, cY)
 
 

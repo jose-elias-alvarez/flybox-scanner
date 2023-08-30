@@ -62,8 +62,6 @@ class FrameHandler(MotionEvent):
         if last_point is None:
             self.points[coords] = point
             return
-        if not (point.center and last_point.center):
-            return
 
         # if we have multiple points in the same frame, we only want to keep the largest one
         # we'll need to change this if we ever want to capture multiple flies in a single well

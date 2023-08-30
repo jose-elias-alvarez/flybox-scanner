@@ -44,7 +44,7 @@ class ScanCanvas(FrameCanvas):
         self.detect_grid()
         if environ.get("OUTPUT_FILE"):
             # need to schedule this to avoid updating a dead canvas
-            self.window.after(0, start_recording)
+            self.window.after_idle(start_recording)
 
     def layout(self):
         super().grid()

@@ -23,6 +23,7 @@ TIME_FORMAT = "%H:%M:%S"
 class FileIntervalHandler(MotionEventHandler):
     def __init__(self, window: "RootWindow", filename: str, interval=DEFAULT_INTERVAL):
         self.window = window
+        self.timer = None
         self.window.cleanup.put(self.cancel)
         try:
             self.grid = self.window.app_state["grid"]
@@ -43,7 +44,8 @@ class FileIntervalHandler(MotionEventHandler):
         self.timer.start()
 
     def cancel(self):
-        self.timer.cancel()
+        if self.timer is not None:
+            self.timer.cancel()
 
     def handle(self, event: MotionEvent):
         self.distances[event.item.coords] += event.distance

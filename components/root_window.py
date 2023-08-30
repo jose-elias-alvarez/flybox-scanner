@@ -46,6 +46,9 @@ class RootWindow(tk.Tk):
         self.after_id: str | None = None
 
     def on_close(self):
+        while not self.cleanup.empty():
+            callback = self.cleanup.get()
+            callback()
         if self.after_id is not None:
             self.after_cancel(self.after_id)
         self.is_running = False
@@ -101,4 +104,5 @@ class RootWindow(tk.Tk):
         traceback.print_exception(exctype, value, trace)
         # for now, show message box and quit, since these are unhandled
         messagebox.showerror("Error", value)
+        self.on_close()
         self.quit()

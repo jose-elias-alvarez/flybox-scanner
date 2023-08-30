@@ -5,9 +5,6 @@ from custom_types.geometry import Rectangle
 
 
 class GridComponent:
-    def contains(self, contour_bounds: ContourBounds):
-        raise NotImplementedError()
-
     @property
     def bounds(self) -> Rectangle:
         raise NotImplementedError()

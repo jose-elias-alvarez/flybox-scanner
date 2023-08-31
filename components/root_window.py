@@ -27,7 +27,13 @@ class RootWindow(tk.Tk):
             self.resizable(False, False)
 
         self.is_running = True
+        # this handles closing via the close button
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+        # and this handles command-q on macOS
+        menubar = tk.Menu(self)
+        mac_app_menu = tk.Menu(menubar, name="apple")
+        menubar.add_cascade(menu=mac_app_menu)
+        self.createcommand("tk::mac::Quit", self.on_close)
 
         # queue of callbacks to run on wipe
         self.cleanup: queue.SimpleQueue[Callable[[], None]] = queue.SimpleQueue()

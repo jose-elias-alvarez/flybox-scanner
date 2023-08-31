@@ -23,7 +23,7 @@ class RootWindow(tk.Tk):
         self.width = kwargs.get("width", 640)
         self.height = kwargs.get("height", 480)
         self.delay = kwargs.get("delay", 30)
-        if kwargs.get("resizable", False):
+        if not kwargs.get("resizable", False):
             self.resizable(False, False)
 
         self.is_running = True

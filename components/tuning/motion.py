@@ -41,7 +41,7 @@ class TuneMotionFrame(tk.Frame):
         self.kernel_size_slider = tk.Scale(
             self,
             from_=1,
-            to=10,
+            to=25,
             orient=tk.HORIZONTAL,
             command=self.motion_detector.update_kernel_size,
         )
@@ -55,7 +55,7 @@ class TuneMotionFrame(tk.Frame):
         self.iterations_slider = tk.Scale(
             self,
             from_=1,
-            to=10,
+            to=25,
             orient=tk.HORIZONTAL,
             command=self.motion_detector.update_iterations,
         )
@@ -75,7 +75,7 @@ class TuneMotionFrame(tk.Frame):
         self.blur_size_slider = tk.Scale(
             self,
             from_=1,
-            to=10,
+            to=12,
             orient=tk.HORIZONTAL,
             command=self.motion_detector.update_blur_size,
         )
@@ -88,7 +88,7 @@ class TuneMotionFrame(tk.Frame):
         self.history_slider = tk.Scale(
             self,
             from_=100,
-            to=5000,
+            to=12000,
             orient=tk.HORIZONTAL,
             command=self.motion_detector.update_history,
         )
@@ -102,7 +102,7 @@ class TuneMotionFrame(tk.Frame):
         self.threshold_slider = tk.Scale(
             self,
             from_=10,
-            to=600,
+            to=800,
             orient=tk.HORIZONTAL,
             command=self.motion_detector.update_dist2_threshold,
         )

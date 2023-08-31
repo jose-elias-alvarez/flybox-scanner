@@ -46,14 +46,7 @@ class MotionDetector:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         mask = self.bg_subtractor.apply(gray)
         if self.operation is not None:
-            mask = cv2.morphologyEx(
-                mask,
-                self.operation,
-                self.kernel,
-                None,
-                None,
-                1,
-            )
+            mask = cv2.morphologyEx(mask, self.operation, self.kernel, iterations=1)
         if self.should_blur:
             mask = cv2.medianBlur(mask, self.blur_size)
         return mask
@@ -82,7 +75,7 @@ class MotionDetector:
         # this is a dilation operation,
         # which expands the detected motion to make it more visible for contour detection
         # at the cost of making it less precise
-        thresh = cv2.dilate(thresh, None, iterations=2)
+        thresh = cv2.dilate(thresh, iterations=2)
 
         self.last_frame = frame.copy()
         return self.find_contours(thresh)

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from components.tooltip import Tooltip
 
 if TYPE_CHECKING:
-    from components import root_window
+    from components.root_window import RootWindow
     from detection.motion import MotionDetector
 
 LABELS = {
@@ -23,7 +23,7 @@ TOOLTIPS = {
 
 
 class TuneMotionFrame(tk.Frame):
-    def __init__(self, window: "root_window", motion_detector: "MotionDetector"):
+    def __init__(self, window: "RootWindow", motion_detector: "MotionDetector"):
         super().__init__(window)
         self.window = window
         self.motion_detector = motion_detector
@@ -60,7 +60,7 @@ class TuneMotionFrame(tk.Frame):
             self,
             from_=1,
             to=24,
-            orient=tk.HORIZONTAL,
+            orient=tk.VERTICAL,
             command=self.motion_detector.update_blur_size,
         )
         self.blur_size_slider.set(self.motion_detector.blur_size)

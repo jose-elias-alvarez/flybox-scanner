@@ -2,34 +2,43 @@ import tkinter as tk
 
 
 class Tooltip:
-    def __init__(self, widget, text="widget info"):
-        self.waittime = 500  # miliseconds
-        self.wraplength = 180  # pixels
-        self.widget = widget
+    def __init__(self, parent: tk.Widget, text: str, **kwargs):
+        self.parent = parent
         self.text = text
-        self.widget.bind("<Enter>", self.onEnter)
-        self.widget.bind("<Leave>", self.onLeave)
+        self.wait_time = kwargs.get("wait_time", 500)
+        self.wrap_length = kwargs.get("wrap_length", 180)
+        self.background = kwargs.get("background", "#FFFFEA")
+        self.offset = kwargs.get("offset", (25, 20))
+
+        self.parent.bind("<Enter>", self.on_enter)
+        self.parent.bind("<Leave>", self.on_leave)
         self.tw = None
+        self.id = None
 
-    def onEnter(self, event=None):
-        self.schedule = self.widget.after(self.waittime, self.showTip)
+    def on_enter(self, _):
+        self.id = self.parent.after(self.wait_time, self.show_tip)
 
-    def onLeave(self, event=None):
-        self.widget.after_cancel(self.schedule)
-        self.hideTip()
+    def on_leave(self, _):
+        if self.id is not None:
+            self.parent.after_cancel(self.id)
+        self.hide_tip()
 
-    def showTip(self):
-        x, y, _, _ = self.widget.bbox("insert")
-        x += self.widget.winfo_rootx() + 25
-        y += self.widget.winfo_rooty() + 20
-        self.tw = tk.Toplevel(self.widget)
+    def show_tip(self):
+        x, y, _, _ = self.parent.bbox("insert")
+        (x_offset, y_offset) = self.offset
+        x += self.parent.winfo_rootx() + x_offset
+        y += self.parent.winfo_rooty() + y_offset
+        self.tw = tk.Toplevel(self.parent)
         self.tw.wm_overrideredirect(True)
         self.tw.wm_geometry(f"+{x}+{y}")
         label = tk.Label(
-            self.tw, text=self.text, wraplength=self.wraplength, background="#ffffff"
+            self.tw,
+            text=self.text,
+            wraplength=self.wrap_length,
+            background=self.background,
         )
         label.pack()
 
-    def hideTip(self):
-        if self.tw:
+    def hide_tip(self):
+        if self.tw is not None:
             self.tw.destroy()

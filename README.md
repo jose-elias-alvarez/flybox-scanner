@@ -44,6 +44,8 @@ To tune motion detection parameters, run the following command:
 python main.py --tuning=motion
 ```
 
+Note that parameters are not yet saved between runs. If you find a set of parameters that works well, you can hard-code them into `detection/motion.py`.
+
 ### Other Parameters
 
 Other parameters are currently hard-coded into the following Python source files and must be edited manually:

@@ -35,7 +35,7 @@
       "label": "Tune motion detection",
       "type": "process",
       "command": "${command:python.interpreterPath}",
-      "args": ["${workspaceFolder}/main.py", "--tune", "motion"],
+      "args": ["${workspaceFolder}/main.py", "--tuning", "motion"],
       "problemMatcher": [],
       "presentation": {
         "echo": true,

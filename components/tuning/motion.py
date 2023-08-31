@@ -56,12 +56,17 @@ class TuneMotionFrame(tk.Frame):
         )
         if self.motion_detector.should_blur:
             self.should_blur_checkbox.select()
+
+        def update_blur_size(val):
+            self.motion_detector.update_blur_size(val)
+            self.blur_size_slider.set(self.motion_detector.blur_size)
+
         self.blur_size_slider = tk.Scale(
             self,
             from_=1,
             to=24,
-            orient=tk.VERTICAL,
-            command=self.motion_detector.update_blur_size,
+            orient=tk.HORIZONTAL,
+            command=update_blur_size,
         )
         self.blur_size_slider.set(self.motion_detector.blur_size)
 

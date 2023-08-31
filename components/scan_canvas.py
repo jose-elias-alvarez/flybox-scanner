@@ -42,7 +42,7 @@ class ScanCanvas(FrameCanvas):
         )
 
         self.detect_grid()
-        if environ.get("OUTPUT_FILE"):
+        if window.tuning_mode == "motion" or environ.get("OUTPUT_FILE"):
             # need to schedule this to avoid updating a dead canvas
             self.window.after_idle(start_recording)
 

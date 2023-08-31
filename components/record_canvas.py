@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from components.frame_canvas import FrameCanvas
 from components.tuning.motion import TuneMotionFrame
+from custom_types.motion import MotionEventHandler
 from handlers.debug import DebugHandler
 from handlers.file_interval import FileIntervalHandler
 from handlers.frame import FrameHandler
@@ -18,15 +19,17 @@ class RecordCanvas(FrameCanvas):
         super().__init__(window)
         self.hidden = False
 
-        try:
-            filename = environ["OUTPUT_FILE"]
-        except KeyError:
-            filename = filedialog.asksaveasfilename(defaultextension=".txt")
+        if window.tuning_mode == "motion":
+            handler = MotionEventHandler()
+        else:
+            try:
+                filename = environ["OUTPUT_FILE"]
+            except KeyError:
+                filename = filedialog.asksaveasfilename(defaultextension=".txt")
+            handler = FileIntervalHandler(window, filename)
+            handler.start()
 
-        file_interval_handler = FileIntervalHandler(window, filename)
-        file_interval_handler.start()
-
-        wrapped_handler = DebugHandler(file_interval_handler)
+        wrapped_handler = DebugHandler(handler)
         self.frame_handler = FrameHandler(window, wrapped_handler)
 
         self.button_frame = tk.Frame(self.window)

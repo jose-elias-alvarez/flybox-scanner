@@ -33,4 +33,4 @@ class MotionEvent:
 
 class MotionEventHandler:
     def handle(self, event: MotionEvent) -> None:
-        raise NotImplementedError()
+        pass

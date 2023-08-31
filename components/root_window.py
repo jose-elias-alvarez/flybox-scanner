@@ -1,7 +1,6 @@
 import queue
 import tkinter as tk
 import traceback
-from os import environ
 from tkinter import messagebox
 from typing import Any, Callable
 
@@ -49,10 +48,7 @@ class RootWindow(tk.Tk):
 
         self.canvas: StateCanvas | None = None
         self.state_manager = StateManager(self)
-        if environ.get("OUTPUT_FILE"):
-            self.state_manager.scan()
-        else:
-            self.state_manager.idle()
+        self.state_manager.idle()
 
         # override default error handling
         self.report_callback_exception = self.handle_exception

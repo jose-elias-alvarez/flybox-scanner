@@ -20,7 +20,7 @@
       "args": ["${workspaceFolder}/main.py"],
       "options": {
         "env": {
-          "DEFAULT_SOURCE": "videos/${input:video}.mp4",
+          "SOURCE": "videos/${input:video}.mp4",
           "OUTPUT_FILE": "videos/${input:video}_output.txt"
         }
       },

@@ -1,4 +1,5 @@
 import json
+from os import environ
 
 
 def merge_json(default: dict, overrides: dict) -> dict:
@@ -46,6 +47,12 @@ def diff_dicts(d1, d2):
     return result
 
 
+ENV_OVERRIDES = {
+    "video.source": "SOURCE",
+    "recording.output_file": "OUTPUT_FILE",
+}
+
+
 class AppSettings:
     def __init__(self):
         self.default_settings_file = "default_settings.json"
@@ -60,6 +67,13 @@ class AppSettings:
                 self.settings = merge_json(self.settings, overrides)
         except FileNotFoundError:
             pass
+        # finally, check for environment variables that override settings
+        for key, env_var in ENV_OVERRIDES.items():
+            if env_var in environ:
+                self.set(key, environ[env_var])
+
+    def __str__(self):
+        return json.dumps(self.settings, indent=2)
 
     def get(self, key: str):
         keys = key.split(".")
@@ -68,7 +82,7 @@ class AppSettings:
             try:
                 value = value[key]
             except KeyError:
-                raise KeyError(f"Invalid settings key: {key}")
+                return None
         return value
 
     def set(self, key: str, value):
@@ -78,7 +92,7 @@ class AppSettings:
             try:
                 target = target[key]
             except KeyError:
-                raise KeyError(f"Invalid settings key: {key}")
+                return None
         target[keys[-1]] = value
 
     def save(self):

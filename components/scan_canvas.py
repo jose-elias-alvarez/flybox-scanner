@@ -1,5 +1,4 @@
 import tkinter as tk
-from os import environ
 from tkinter import messagebox
 from typing import TYPE_CHECKING
 
@@ -42,7 +41,7 @@ class ScanCanvas(FrameCanvas):
         )
 
         self.detect_grid()
-        if window.tuning_mode == "motion" or environ.get("OUTPUT_FILE"):
+        if window.tuning_mode == "motion":
             # need to schedule this to avoid updating a dead canvas
             self.window.after_idle(start_recording)
 

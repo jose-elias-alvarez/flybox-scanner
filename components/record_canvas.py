@@ -1,5 +1,5 @@
 import tkinter as tk
-from os import environ
+from os import getcwd, path
 from tkinter import filedialog
 from typing import TYPE_CHECKING
 
@@ -18,27 +18,38 @@ class RecordCanvas(FrameCanvas):
     def __init__(self, window: "RootWindow"):
         super().__init__(window)
         self.hidden = False
+        self.filename = None
+        self.output_path = None
 
         if window.tuning_mode == "motion":
             handler = MotionEventHandler()
         else:
-            try:
-                filename = environ["OUTPUT_FILE"]
-            except KeyError:
-                filename = filedialog.asksaveasfilename(defaultextension=".txt")
-            handler = FileIntervalHandler(window, filename)
+            self.filename = self.window.settings.get(
+                "recording.output_file"
+            ) or filedialog.asksaveasfilename(defaultextension=".txt")
+            if self.filename == "":
+                raise ValueError("No output file selected")
+            handler = FileIntervalHandler(window, self.filename)
             handler.start()
 
         wrapped_handler = DebugHandler(handler)
         self.frame_handler = FrameHandler(window, wrapped_handler)
 
-        self.button_frame = tk.Frame(self.window)
+        self.frame = tk.Frame(self.window)
+        self.path_label = None
+        self.hide_button = None
         self.stop_button = tk.Button(
-            self.button_frame, text="Stop", command=self.window.state_manager.idle
+            self.frame, text="Stop", command=self.window.state_manager.idle
         )
-        self.hide_button = tk.Button(
-            self.button_frame, text="Hide", command=self.toggle_hide
-        )
+        if self.filename is not None:
+            if self.filename.startswith(getcwd()):
+                self.output_path = path.relpath(self.filename)
+            else:
+                self.output_path = self.filename
+            self.path_label = tk.Label(self.frame, text=f"Output: {self.output_path}")
+            self.hide_button = tk.Button(
+                self.frame, text="Hide", command=self.toggle_hide
+            )
 
         self.tuning_frame = None
         if self.window.tuning_mode == "motion":
@@ -48,9 +59,11 @@ class RecordCanvas(FrameCanvas):
 
     def layout(self):
         super().grid()
-        self.button_frame.grid(row=1, column=0)
-        self.hide_button.grid(row=0, column=0)
-        self.stop_button.grid(row=0, column=1)
+        self.frame.grid(row=1, column=0)
+        if self.filename is not None:
+            self.path_label.grid(row=0, column=0)
+            self.hide_button.grid(row=0, column=1)
+        self.stop_button.grid(row=0, column=2)
         if self.tuning_frame is not None:
             self.tuning_frame.layout()
 

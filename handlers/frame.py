@@ -13,10 +13,6 @@ if TYPE_CHECKING:
 # so we can only handle one fly per well, but this can be changed in the future
 # see the logic in handle_contour for more info
 
-# filter out contours that are too small
-# note that our current camera resolution means this filters out wings
-MIN_CONTOUR_SIZE = 2
-
 
 class FrameHandler(MotionEvent):
     def __init__(self, window: "RootWindow", handler: MotionEventHandler):
@@ -44,8 +40,6 @@ class FrameHandler(MotionEvent):
             return
 
         point = MotionPoint(contour, item, frame_count)
-        if point.area < MIN_CONTOUR_SIZE:
-            return
         coords = point.item.coords
         last_point = self.points.get(coords)
         if last_point is None:

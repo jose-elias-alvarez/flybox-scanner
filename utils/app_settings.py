@@ -67,15 +67,17 @@ class AppSettings:
                 self.settings = merge_json(self.settings, overrides)
         except FileNotFoundError:
             pass
-        # finally, check for environment variables
-        for key, env_var in self.env_overrides.items():
-            if env_var in environ:
-                self.set(key, environ[env_var])
 
     def __str__(self):
         return json.dumps(self.settings, indent=2)
 
     def get(self, key: str):
+        # try to resolve from environment variables first
+        if key in self.env_overrides:
+            env_var = self.env_overrides[key]
+            if env_var in environ:
+                return environ[env_var]
+
         keys = key.split(".")
         value = self.settings
         for key in keys:

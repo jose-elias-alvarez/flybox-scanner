@@ -9,11 +9,11 @@ import numpy as np
 METHOD = "BG_SUBTRACTOR"
 OPERATION = cv2.MORPH_CLOSE
 # see the README for details on tuning these parameters
-HISTORY = 1200
-DIST2_THRESHOLD = 240
-KERNEL_SIZE = 3
+HISTORY = 12000
+DIST2_THRESHOLD = 125
+KERNEL_SIZE = 10
 SHOULD_BLUR = True
-BLUR_SIZE = 3
+BLUR_SIZE = 5
 
 # we can also use a simple frame differencing method,
 # where we compare each frame to the previous frame
@@ -29,7 +29,6 @@ class MotionDetector:
         self.kernel_size = KERNEL_SIZE
         self.kernel = np.ones((self.kernel_size, self.kernel_size), np.uint8)
         self.operation = OPERATION
-        self.iterations = 3
         self.should_blur = SHOULD_BLUR
         self.blur_size = BLUR_SIZE
 
@@ -51,7 +50,9 @@ class MotionDetector:
                 mask,
                 self.operation,
                 self.kernel,
-                self.iterations,
+                None,
+                None,
+                1,
             )
         if self.should_blur:
             mask = cv2.medianBlur(mask, self.blur_size)

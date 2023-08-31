@@ -66,10 +66,13 @@ AVERAGE_RADIUS_ALPHA = 0.75
 
 class GridDetector:
     def __init__(self, frame):
+        self.frame = frame
         if SHOULD_EQUALIZE_HISTOGRAM:
             self.clahe = cv2.createCLAHE(clipLimit=4, tileGridSize=(8, 8))
-        self.frame = frame
-        self.processed_frame = self.process_frame()
+        self.processed_frame = None
+        self.circles = None
+        self.average_radius = None
+        self.grid = None
 
     def process_frame(self):
         # implementation detail: I tried using the average of the first X frames,
@@ -143,12 +146,14 @@ class GridDetector:
         return circles
 
     def detect(self):
-        circles = self.detect_circles()
-        average_radius = np.average(circles[:, 2])
+        self.processed_frame = self.process_frame()
+        self.circles = self.detect_circles()
+        self.average_radius = np.average(self.circles[:, 2])
+
         grid = [[]]
-        for x, y, radius in sorted(circles, key=lambda circle: circle[1]):
+        for x, y, radius in sorted(self.circles, key=lambda circle: circle[1]):
             radius = (radius * (1 - AVERAGE_RADIUS_ALPHA)) + (
-                average_radius * AVERAGE_RADIUS_ALPHA
+                self.average_radius * AVERAGE_RADIUS_ALPHA
             )
             item = (
                 (
@@ -168,7 +173,7 @@ class GridDetector:
             # case 2: item is too far from last item on the y axis, so we're in a new row
             last_item = row[-1]
             distance = item[1][1] - last_item[1][1]
-            is_in_new_row = distance > average_radius
+            is_in_new_row = distance > self.average_radius
             if is_in_new_row:
                 grid.append([item])
                 continue
@@ -188,4 +193,5 @@ class GridDetector:
             grid[row_index] = Row(row)
         grid = Grid(grid)
 
+        self.grid = grid
         return grid

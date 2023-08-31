@@ -83,6 +83,14 @@ Note that video output is not yet optimized and may differ from webcam output.
 - [Fly.mp4](https://drive.google.com/file/d/1q6RSJJIWKrrxvLqLVuanaOrmj1ull6yN/view?usp=share_link)
 - [DoubleFly.mp4](https://drive.google.com/file/d/1jw3vVR3u8bQfJR4toDuorEAYqEPXu1Qc/view?usp=share_link)
 
+### Tests
+
+Tests are written using `unittest` and live in the `tests/` directory. To run them, use the following command:
+
+```sh
+python -m unittest discover tests/
+```
+
 ### VS Code
 
 #### Tasks

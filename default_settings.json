@@ -1,0 +1,12 @@
+{
+  "window": {
+    "title": "Flybox Scanner",
+    "resizable": false,
+    "width": 640,
+    "height": 480
+  },
+  "video": {
+    "source": 0,
+    "frame_delay": 30
+  }
+}

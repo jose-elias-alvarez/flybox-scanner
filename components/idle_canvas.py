@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import filedialog
 from typing import TYPE_CHECKING
 
-import cv2
-
 from components.frame_canvas import FrameCanvas
 
 if TYPE_CHECKING:
@@ -40,4 +38,4 @@ class IdleCanvas(FrameCanvas):
         )
         if filename == "":
             return
-        self.window.set_cap(cv2.VideoCapture(filename))
+        self.window.set_source(filename)

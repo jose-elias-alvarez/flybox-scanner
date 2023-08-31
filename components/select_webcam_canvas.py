@@ -26,9 +26,9 @@ class SelectWebcamCanvas(FrameCanvas):
 
         self.sources = [0]
         self.current_source = self.sources[0]
-        self.window.set_cap(cv2.VideoCapture(self.current_source))
         self.selected_source = tk.StringVar()
         self.selected_source.set("Webcam 1")
+        self.window.set_source(self.current_source)
 
         # on macOS, at least, indeterminate mode doesn't seem to work
         self.button_frame = tk.Frame(self.window)
@@ -83,7 +83,7 @@ class SelectWebcamCanvas(FrameCanvas):
 
     def change_webcam(self, selected_source: str):
         self.current_source = int(selected_source.split(" ")[1]) - 1
-        self.window.set_cap(cv2.VideoCapture(self.current_source))
+        self.window.set_source(self.current_source)
 
     def on_close(self):
         self.thread.join()

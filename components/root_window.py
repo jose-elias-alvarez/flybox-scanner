@@ -9,21 +9,25 @@ import cv2
 
 from components.state_canvas import StateCanvas
 from components.state_manager import StateManager
+from utils.app_settings import AppSettings
 from utils.arg_parser import arg_parser
 
 
 class RootWindow(tk.Tk):
-    def __init__(self, cap: cv2.VideoCapture, **kwargs):
+    def __init__(self):
         super().__init__()
-        self.cap = cap
+        self.settings = AppSettings()
+        self.cap = None
+        self.set_source(self.settings.get("video.source"))
+        self.frame_delay = self.settings.get("video.frame_delay")
+
         self.args = arg_parser()
         self.tuning_mode = self.args.tuning
 
-        self.title(kwargs.get("title", "Untitled"))
-        self.width = kwargs.get("width", 640)
-        self.height = kwargs.get("height", 480)
-        self.delay = kwargs.get("delay", 30)
-        if not kwargs.get("resizable", False):
+        self.title(self.settings.get("window.title"))
+        self.width = self.settings.get("window.width")
+        self.height = self.settings.get("window.height")
+        if self.settings.get("window.resizable") is False:
             self.resizable(False, False)
 
         self.is_running = True
@@ -74,10 +78,14 @@ class RootWindow(tk.Tk):
             self.canvas.destroy()
             self.canvas = None
 
-    def set_cap(self, cap: cv2.VideoCapture):
+    def set_source(self, source: str | int):
         if self.cap is not None:
             self.cap.release()
             self.cap = None
+        cap = cv2.VideoCapture()
+        cap.open(source)
+        if not cap.isOpened():
+            raise IOError(f"Unable to open video source: {source}")
         self.cap = cap
 
     # because tkinter elements are tied to a window on creation,
@@ -88,7 +96,7 @@ class RootWindow(tk.Tk):
         self.canvas.layout()
 
     def schedule_update(self):
-        self.after_id = self.after(self.delay, self.update)
+        self.after_id = self.after(self.frame_delay, self.update)
 
     def update(self):
         # on each iteration, we check for errors from threads

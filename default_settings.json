@@ -11,5 +11,12 @@
   },
   "recording": {
     "output_file": null
+  },
+  "motion": {
+    "history": 12000,
+    "dist2_threshold": 165,
+    "kernel_size": 12,
+    "blur_size": 5,
+    "diff_threshold": 15
   }
 }

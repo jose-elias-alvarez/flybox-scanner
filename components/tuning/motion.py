@@ -8,15 +8,15 @@ if TYPE_CHECKING:
     from detection.motion import MotionDetector
 
 LABELS = {
-    "kernel_size": "Kernel",
-    "should_blur": "Blur",
+    "kernel_size": "Kernel Size",
+    "blur": "Blur",
     "history": "History",
     "threshold": "Threshold",
 }
 
 TOOLTIPS = {
     "kernel_size": "Kernel size for morphological closing (larger = bigger objects)",
-    "should_blur": "Blur the image before applying background subtraction. Reduces noise but erases small details.",
+    "blur": "Blur the image before applying background subtraction. Reduces noise but erases small details.",
     "history": "Number of frames to use for background subtraction. Higher values require more motion to trigger a detection but take longer to react to camera / lighting changes.",
     "threshold": "Distance threshold for background subtraction. Higher values require more motion to trigger a detection.",
 }
@@ -45,25 +45,18 @@ class TuneMotionFrame(tk.Frame):
         )
         self.kernel_size_slider.set(self.motion_detector.kernel_size)
 
-        self.should_blur_checkbox = tk.Checkbutton(
-            self,
-            text=LABELS["should_blur"],
-            command=self.motion_detector.toggle_should_blur,
-        )
-        self.should_blur_tooltip = Tooltip(
-            self.should_blur_checkbox,
-            TOOLTIPS["should_blur"],
-        )
-        if self.motion_detector.should_blur:
-            self.should_blur_checkbox.select()
-
         def update_blur_size(val):
             self.motion_detector.update_blur_size(val)
             self.blur_size_slider.set(self.motion_detector.blur_size)
 
+        self.blur_label = tk.Label(self, text=LABELS["blur"], width=10)
+        self.blur_tooltip = Tooltip(
+            self.blur_label,
+            TOOLTIPS["blur"],
+        )
         self.blur_size_slider = tk.Scale(
             self,
-            from_=1,
+            from_=0,
             to=24,
             orient=tk.HORIZONTAL,
             command=update_blur_size,
@@ -98,13 +91,18 @@ class TuneMotionFrame(tk.Frame):
         )
         self.threshold_slider.set(self.motion_detector.dist2_threshold)
 
+        self.save_button = tk.Button(
+            self, text="Save", command=self.motion_detector.save_settings
+        )
+
     def layout(self):
         self.grid(row=2, column=0)
         self.kernel_size_label.grid(row=0, column=0)
         self.kernel_size_slider.grid(row=0, column=1)
-        self.should_blur_checkbox.grid(row=0, column=2)
+        self.blur_label.grid(row=0, column=2)
         self.blur_size_slider.grid(row=0, column=3)
         self.history_label.grid(row=1, column=0)
         self.history_slider.grid(row=1, column=1)
         self.threshold_label.grid(row=1, column=2)
         self.threshold_slider.grid(row=1, column=3)
+        self.save_button.grid(row=2, column=0, columnspan=4)

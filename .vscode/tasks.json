@@ -30,6 +30,18 @@
         "reveal": "silent",
         "clear": false
       }
+    },
+    {
+      "label": "Tune motion detection",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": ["${workspaceFolder}/main.py", "--tune", "motion"],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "clear": false
+      }
     }
   ],
   "inputs": [

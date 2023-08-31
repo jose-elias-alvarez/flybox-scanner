@@ -27,6 +27,7 @@ def main():
     cap.open(DEFAULT_SOURCE)
     if not cap.isOpened():
         raise IOError(f"Cannot open video source {DEFAULT_SOURCE}")
+
     root_window = RootWindow(
         cap,
         title=WINDOW_TITLE,
@@ -38,4 +39,5 @@ def main():
     root_window.start()
 
 
-main()
+if __name__ == "__main__":
+    main()

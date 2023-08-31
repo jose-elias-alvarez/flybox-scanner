@@ -36,7 +36,17 @@ conda env remove --name flybox-scanner
 
 ## Parameters
 
-At the moment, parameters are hard-coded into the following Python source files:
+### Motion Detection
+
+To tune motion detection parameters, run the following command:
+
+```sh
+python main.py --tuning=motion
+```
+
+### Other Parameters
+
+Other parameters are currently hard-coded into the following Python source files and must be edited manually:
 
 - `main.py`: controls source and window parameters
 
@@ -44,7 +54,6 @@ At the moment, parameters are hard-coded into the following Python source files:
 
 - `detection/border.py`: controls the detection of borders in frames (used to "crop" the flybox background)
 - `detection/grids.py`: controls the detection of wells
-- `detection/motion.py`: controls the detection of fly motion
 
 ### Handlers
 

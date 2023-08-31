@@ -9,12 +9,15 @@ import cv2
 
 from components.state_canvas import StateCanvas
 from components.state_manager import StateManager
+from utils.arg_parser import arg_parser
 
 
 class RootWindow(tk.Tk):
     def __init__(self, cap: cv2.VideoCapture, **kwargs):
         super().__init__()
         self.cap = cap
+        self.args = arg_parser()
+        self.tuning_mode = self.args.tuning
 
         self.title(kwargs.get("title", "Untitled"))
         self.width = kwargs.get("width", 640)

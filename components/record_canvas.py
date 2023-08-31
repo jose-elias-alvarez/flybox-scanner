@@ -4,6 +4,7 @@ from tkinter import filedialog
 from typing import TYPE_CHECKING
 
 from components.frame_canvas import FrameCanvas
+from components.tuning.motion import TuneMotionFrame
 from handlers.debug import DebugHandler
 from handlers.file_interval import FileIntervalHandler
 from handlers.frame import FrameHandler
@@ -36,11 +37,19 @@ class RecordCanvas(FrameCanvas):
             self.button_frame, text="Hide", command=self.toggle_hide
         )
 
+        self.tuning_frame = None
+        if self.window.tuning_mode == "motion":
+            self.tuning_frame = TuneMotionFrame(
+                window, self.frame_handler.motion_detector
+            )
+
     def layout(self):
         super().grid()
         self.button_frame.grid(row=1, column=0)
         self.hide_button.grid(row=0, column=0)
         self.stop_button.grid(row=0, column=1)
+        if self.tuning_frame is not None:
+            self.tuning_frame.layout()
 
     def toggle_hide(self):
         if self.hidden:

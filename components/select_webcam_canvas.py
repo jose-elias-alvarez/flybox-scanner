@@ -21,6 +21,7 @@ class SelectWebcamCanvas(FrameCanvas):
 
         # update every 100ms
         self.check_interval = 100
+        self.id = None
         self.check_thread()
 
         self.sources = [0]
@@ -45,8 +46,10 @@ class SelectWebcamCanvas(FrameCanvas):
 
     def check_thread(self):
         if self.thread.is_alive():
-            self.window.after(self.check_interval, self.check_thread)
+            self.id = self.window.after(self.check_interval, self.check_thread)
         else:
+            if self.id is not None:
+                self.window.after_cancel(self.id)
             self.progress.stop()
             self.progress.grid_forget()
 
@@ -64,8 +67,8 @@ class SelectWebcamCanvas(FrameCanvas):
         if len(self.sources) == 1:
             messagebox.showinfo("Select Webcam", "Only 1 webcam found!")
             self.window.after_idle(self.window.state_manager.idle)
-
-        self.window.after_idle(self.update_dropdown)
+        else:
+            self.window.after_idle(self.update_dropdown)
 
     def update_dropdown(self):
         self.dropdown = tk.OptionMenu(

@@ -14,9 +14,9 @@ DEFAULT_INTERVAL = 30
 
 # output file options
 # see the make_row method for more info
+DATE_FORMAT = "%d-%b-%y"
+TIME_FORMAT = "%-I:%M:%S"
 DELIMITER = "\t"
-DATE_FORMAT = "%d %b %y"
-TIME_FORMAT = "%H:%M:%S"
 
 
 # captures motion events and flushes them to the specified file at the specified interval
@@ -62,13 +62,14 @@ class FileIntervalHandler(MotionEventHandler):
             self.index,
             self.last_flush.strftime(DATE_FORMAT),
             self.last_flush.strftime(TIME_FORMAT),
-            1,  # monitor status (always 1)
-            0,  # unused
-            1,  # monitor number (should be user-specified in the future)
-            0,  # unused
+            1,   # monitor status (always 1)
+            1,   # monitor number (should be user-specified in the future)
+            0,   # unused
+            0,   # unused
+            0,   # unused
+            0,   # unused
             "Ct",  # ??
-            0,  # unused
-            0,  # likely unused
+            0,   # unused
         ]
         for coords in self.distances:
             row_parts.append(int(self.distances[coords]))

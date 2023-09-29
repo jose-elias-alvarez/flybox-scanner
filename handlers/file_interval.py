@@ -10,12 +10,12 @@ if TYPE_CHECKING:
 # this class handles motion events and flushes them to the specified file at the specified interval
 
 # 30 is the canonical interval, but you may want to lower this for testing
-DEFAULT_INTERVAL = 30
+DEFAULT_INTERVAL = 60
 
 # output file options
 # see the make_row method for more info
 DATE_FORMAT = "%d-%b-%y"
-TIME_FORMAT = "%-I:%M:%S"
+TIME_FORMAT = "%I:%M:%S"
 DELIMITER = "\t"
 
 
@@ -57,11 +57,17 @@ class FileIntervalHandler(MotionEventHandler):
                 distances[item.coords] = 0
         return distances
 
+    def format_time(self, dt):
+        time_str = dt.strftime("%I:%M:%S")
+        if time_str[0] == "0":
+            return time_str[1:]
+        return time_str
+
     def make_row(self):
         row_parts = [
             self.index,
             self.last_flush.strftime(DATE_FORMAT),
-            self.last_flush.strftime(TIME_FORMAT),
+            self.format_time(self.last_flush),
             1,   # monitor status (always 1)
             1,   # monitor number (should be user-specified in the future)
             0,   # unused
@@ -71,8 +77,17 @@ class FileIntervalHandler(MotionEventHandler):
             "Ct",  # ??
             0,   # unused
         ]
-        for coords in self.distances:
-            row_parts.append(int(self.distances[coords]))
+        max_x = max(key[0] for key in self.distances)
+        max_y = max(key[1] for key in self.distances)
+
+        for y in range(max_y + 1):
+            for x in range(max_x + 1):
+                coords = (x, y)
+                if coords in self.distances:
+                    row_parts.append(int(self.distances[coords]))
+                else:
+                    row_parts.append(0)  # Default value if coords don't exist in the dictionary
+
         return DELIMITER.join(map(str, row_parts))
 
     def write_data(self):

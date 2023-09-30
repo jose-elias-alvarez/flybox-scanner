@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 # this class handles motion events and flushes them to the specified file at the specified interval
 
-# 30 is the canonical interval, but you may want to lower this for testing
+# 60 is the canonical interval, but you may want to lower this for testing
 DEFAULT_INTERVAL = 60
 
 # output file options
@@ -68,14 +68,14 @@ class FileIntervalHandler(MotionEventHandler):
             self.index,
             self.last_flush.strftime(DATE_FORMAT),
             self.format_time(self.last_flush),
-            1,   # monitor status (always 1)
-            1,   # monitor number (should be user-specified in the future)
-            0,   # unused
-            0,   # unused
-            0,   # unused
-            0,   # unused
+            1,  # monitor status (always 1)
+            1,  # monitor number (should be user-specified in the future)
+            0,  # unused
+            0,  # unused
+            0,  # unused
+            0,  # unused
             "Ct",  # ??
-            0,   # unused
+            0,  # unused
         ]
         max_x = max(key[0] for key in self.distances)
         max_y = max(key[1] for key in self.distances)
@@ -86,7 +86,9 @@ class FileIntervalHandler(MotionEventHandler):
                 if coords in self.distances:
                     row_parts.append(int(self.distances[coords]))
                 else:
-                    row_parts.append(0)  # Default value if coords don't exist in the dictionary
+                    row_parts.append(
+                        0
+                    )  # Default value if coords don't exist in the dictionary
 
         return DELIMITER.join(map(str, row_parts))
 

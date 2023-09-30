@@ -1,9 +1,7 @@
 import datetime
-import os
-import sys
-import time
 import unittest
-from unittest.mock import MagicMock, patch
+from threading import Timer
+from unittest.mock import MagicMock, mock_open, patch
 
 from handlers.file_interval import DEFAULT_INTERVAL, DELIMITER, FileIntervalHandler
 
@@ -27,15 +25,22 @@ class TestFileInterval(unittest.TestCase):
         return mock_grid
 
     def setUp(self):
+        self.mock_open = mock_open()
+        self.patcher = patch("builtins.open", self.mock_open)
+        self.patcher.start()
+
         mock_window = MagicMock()
         mock_window.app_state = {"grid": self.make_mock_grid()}
-
         self.handler = FileIntervalHandler(mock_window, self.output_path)
 
+        # replace with mock to be safe,
+        # since real timers are potentially nasty
+        self.real_start = self.handler.start
+        self.handler.start = MagicMock()
+
     def tearDown(self):
-        os.remove(self.output_path)
-        if self.handler.timer:
-            self.handler.timer.cancel()
+        self.patcher.stop()
+        self.mock_open.reset_mock()
 
     def test_initial_state(self):
         # should set default values
@@ -61,10 +66,8 @@ class TestFileInterval(unittest.TestCase):
         self.assertEqual(self.handler.max_x, 2)
         self.assertEqual(self.handler.max_y, 2)
 
-        # should write empty file to output path
-        self.assertTrue(os.path.exists(self.output_path))
-        with open(self.output_path, "r") as f:
-            self.assertEqual(f.read(), "")
+        self.mock_open.assert_called_once_with(self.output_path, "w")
+        self.mock_open().write.assert_called_once_with("")
 
     def test_handle(self):
         # should update distance for item at event coords
@@ -131,14 +134,15 @@ class TestFileInterval(unittest.TestCase):
         self.assertEqual(row, expected_row)
 
     def test_write_data(self):
-        # should write row to file
+        # reset mock, since it's called once in the constructor
+        self.mock_open.reset_mock()
         self.handler.make_row = MagicMock()
         self.handler.make_row.return_value = "test_row"
 
         self.handler.write_data()
 
-        with open(self.output_path, "r") as f:
-            self.assertEqual(f.read(), "test_row\n")
+        self.mock_open.assert_called_once_with(self.output_path, "a")
+        self.mock_open().write.assert_called_once_with("test_row\n")
 
     def test_flush(self):
         self.handler.index = 1
@@ -155,17 +159,20 @@ class TestFileInterval(unittest.TestCase):
         # should be reset back to 0
         self.assertEqual(self.handler.distances[(0, 0)], 0)
 
-    def test_start(self):
+    # do *not* use real timers unless you hate yourself
+    @patch.object(Timer, "start")
+    @patch.object(Timer, "__init__", return_value=None)
+    def test_start(self, Timer_init, Timer_start):
         self.handler.interval = 0.01
-        self.handler.flush = MagicMock()
 
-        self.handler.start()
-        # max 1 second wait
-        # SURELY using real timers here won't come back to bite me
-        timeout = time.time() + 1
-        while time.time() < timeout:
-            if self.handler.flush.call_count > 0:
-                break
-            time.sleep(0.01)
+        self.real_start()
 
-        self.handler.flush.assert_called_once()
+        Timer_init.assert_called_once_with(self.handler.interval, self.handler.flush)
+        Timer_start.assert_called_once()
+
+    def test_cancel(self):
+        self.handler.timer = MagicMock()
+
+        self.handler.cancel()
+
+        self.handler.timer.cancel.assert_called_once()

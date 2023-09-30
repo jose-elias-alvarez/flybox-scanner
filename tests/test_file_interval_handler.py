@@ -163,8 +163,6 @@ class TestFileInterval(unittest.TestCase):
     @patch.object(Timer, "start")
     @patch.object(Timer, "__init__", return_value=None)
     def test_start(self, Timer_init, Timer_start):
-        self.handler.interval = 0.01
-
         self.real_start()
 
         Timer_init.assert_called_once_with(self.handler.interval, self.handler.flush)

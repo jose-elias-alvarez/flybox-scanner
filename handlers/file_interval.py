@@ -29,10 +29,14 @@ class FileIntervalHandler(MotionEventHandler):
             self.grid = self.window.app_state["grid"]
         except KeyError:
             raise Exception("Grid not initialized")
+
+        self.distances = self.make_distances()
+        self.max_x = max(key[0] for key in self.distances)
+        self.max_y = max(key[1] for key in self.distances)
+
         self.filename = filename
         self.interval = interval
         self.index = 0
-        self.distances = self.make_distances()
         self.last_flush = datetime.datetime.now()
 
         # immediately write file (provides better feedback, and helps catch errors)
@@ -77,18 +81,16 @@ class FileIntervalHandler(MotionEventHandler):
             "Ct",  # ??
             0,  # unused
         ]
-        max_x = max(key[0] for key in self.distances)
-        max_y = max(key[1] for key in self.distances)
 
-        for y in range(max_y + 1):
-            for x in range(max_x + 1):
+        """
+        Basically all downstream analysis 
+        is written with the order of flies 
+        by column, then row, i.e. 1A-H, 2A-H, etc.
+        """
+        for y in range(self.max_y + 1):
+            for x in range(self.max_x + 1):
                 coords = (x, y)
-                if coords in self.distances:
-                    row_parts.append(int(self.distances[coords]))
-                else:
-                    row_parts.append(
-                        0
-                    )  # Default value if coords don't exist in the dictionary
+                row_parts.append(int(self.distances[coords]))
 
         return DELIMITER.join(map(str, row_parts))
 

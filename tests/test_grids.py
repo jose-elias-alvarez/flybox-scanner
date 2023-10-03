@@ -2,9 +2,7 @@ import unittest
 
 import cv2
 
-from detection.grids import (
-    GridDetector,
-)
+from detection.grids import GridDetector
 
 
 class TestGridDetector(unittest.TestCase):

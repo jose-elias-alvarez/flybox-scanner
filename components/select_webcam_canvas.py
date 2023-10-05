@@ -1,11 +1,10 @@
 import threading
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk
 from typing import TYPE_CHECKING
 
-import cv2
-
 from components.frame_canvas import FrameCanvas
+from utils.get_webcams import get_webcams
 
 if TYPE_CHECKING:
     from components.root_window import RootWindow
@@ -19,18 +18,17 @@ class SelectWebcamCanvas(FrameCanvas):
         self.thread = threading.Thread(target=self.get_webcams)
         self.thread.start()
 
-        # update every 100ms
-        self.check_interval = 100
+        # update every 50ms
+        self.check_interval = 50
         self.id = None
         self.check_thread()
 
         self.sources = [0]
         self.current_source = self.sources[0]
         self.selected_source = tk.StringVar()
-        self.selected_source.set("Webcam 1")
+        self.selected_source.set("Webcam " + str(self.current_source + 1))
         self.window.set_source(self.current_source)
 
-        # on macOS, at least, indeterminate mode doesn't seem to work
         self.button_frame = tk.Frame(self.window)
         self.progress = ttk.Progressbar(self.button_frame, mode="indeterminate")
         self.select_button = tk.Button(
@@ -41,34 +39,22 @@ class SelectWebcamCanvas(FrameCanvas):
     def layout(self):
         super().grid()
         self.button_frame.grid(row=1, column=0, sticky="ew")
-        self.progress.grid(row=0, column=0, columnspan=3, sticky="ew")
+        self.button_frame.grid_columnconfigure(0, weight=1)
+        self.progress.grid(row=0, column=0, sticky="ew")
         self.progress.start()
 
     def check_thread(self):
         if self.thread.is_alive():
             self.id = self.window.after(self.check_interval, self.check_thread)
         else:
-            if self.id is not None:
-                self.window.after_cancel(self.id)
             self.progress.stop()
             self.progress.grid_forget()
+            if self.id is not None:
+                self.window.after_cancel(self.id)
 
     def get_webcams(self):
-        index = 1
-        while index < 10:
-            cap = cv2.VideoCapture(index)
-            if not cap.read()[0]:
-                break
-            else:
-                self.sources.append(index)
-            cap.release()
-            index += 1
-
-        if len(self.sources) == 1:
-            messagebox.showinfo("Select Webcam", "Only 1 webcam found!")
-            self.window.after_idle(self.window.state_manager.idle)
-        else:
-            self.window.after_idle(self.update_dropdown)
+        self.sources = get_webcams()
+        self.window.after_idle(self.update_dropdown)
 
     def update_dropdown(self):
         self.dropdown = tk.OptionMenu(

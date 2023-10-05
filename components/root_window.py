@@ -1,4 +1,5 @@
 import queue
+import time
 import tkinter as tk
 import traceback
 from tkinter import messagebox
@@ -10,14 +11,20 @@ from components.state_canvas import StateCanvas
 from components.state_manager import StateManager
 from utils.app_settings import AppSettings
 from utils.arg_parser import arg_parser
+from utils.get_webcams import get_webcams
 
 
 class RootWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.settings = AppSettings()
+
+        self.source = None
         self.cap = None
-        self.set_source(self.settings.get("video.source"))
+        source = self.settings.get("video.source")
+        if source == "first_available":
+            source = get_webcams(first_available=True)[0]
+        self.set_source(source)
         self.frame_delay = self.settings.get("video.frame_delay")
 
         self.args = arg_parser()
@@ -78,7 +85,7 @@ class RootWindow(tk.Tk):
         if self.cap is not None:
             self.cap.release()
             self.cap = None
-        cap = cv2.VideoCapture()
+        cap = cv2.VideoCapture(source)
         cap.open(source)
         if not cap.isOpened():
             raise IOError(f"Unable to open video source: {source}")

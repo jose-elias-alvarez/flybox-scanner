@@ -27,6 +27,7 @@ def merge_json(default: dict, overrides: dict) -> dict:
             result[key] = overrides[key]
         else:
             result[key] = default[key]
+    print(result)
     return result
 
 

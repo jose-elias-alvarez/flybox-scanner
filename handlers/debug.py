@@ -1,14 +1,20 @@
+from typing import TYPE_CHECKING
+
 import cv2
+import numpy as np
 
 from custom_types.motion import MotionEventHandler
 from handlers.frame import MotionEvent
+
+if TYPE_CHECKING:
+    from components.root_window import RootWindow
 
 # this class wraps a motion event handler to add debug info
 # at the moment, we're using it to show the detected fly and well
 # this doesn't really cause as much slowdown as you'd imagine
 # and if performance is important, we can hide the video altogether
 
-SHOULD_DRAW_WELL = True
+SHOULD_DRAW_WELL = False
 WELL_COLOR = (0, 255, 0)  # CV2 uses BGR because it hates you
 WELL_THICKNESS = 1
 
@@ -22,12 +28,37 @@ SHOULD_DRAW_DISTANCE = True
 DISTANCE_COLOR = (0, 0, 255)
 DISTANCE_THICKNESS = 1
 
+SHOULD_DRAW_INDICES = True
+INDEX_THICKNESS = 0.5
+INDEX_COLOR = (255, 255, 255)
+
 SHOULD_PRINT = False  # this is really noisy, so it's disabled by default
 
 
 class DebugHandler(MotionEventHandler):
-    def __init__(self, handler: MotionEventHandler):
+    def __init__(self, window: "RootWindow", handler: MotionEventHandler):
+        self.window = window
         self.handler = handler
+
+        if SHOULD_DRAW_INDICES:
+            self.overlay = None
+            self.on_frame = self.draw_indices
+
+    def draw_indices(self, frame):
+        if self.overlay is None:
+            self.overlay = np.zeros(frame.shape, dtype=np.uint8)
+            for row in self.window.app_state["grid"].rows:
+                for item in row.items:
+                    cv2.putText(
+                        self.overlay,
+                        str(item.index + 1),
+                        (int(item.bounds[0][0]), int(item.bounds[0][1])),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        INDEX_THICKNESS,
+                        INDEX_COLOR,
+                    )
+
+        cv2.bitwise_or(frame, self.overlay, frame)
 
     def draw_well(self, event: MotionEvent):
         (start, end) = event.point.item.bounds

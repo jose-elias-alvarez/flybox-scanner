@@ -32,5 +32,8 @@ class MotionEvent:
 
 
 class MotionEventHandler:
+    def __init__(self) -> None:
+        self.on_frame = None
+
     def handle(self, event: MotionEvent) -> None:
         pass

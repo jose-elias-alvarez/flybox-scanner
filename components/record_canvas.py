@@ -32,7 +32,7 @@ class RecordCanvas(FrameCanvas):
             handler = FileIntervalHandler(window, self.filename)
             handler.start()
 
-        wrapped_handler = DebugHandler(handler)
+        wrapped_handler = DebugHandler(window, handler)
         self.frame_handler = FrameHandler(window, wrapped_handler)
 
         self.frame = tk.Frame(self.window)

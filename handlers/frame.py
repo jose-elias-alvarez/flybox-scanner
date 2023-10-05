@@ -63,6 +63,8 @@ class FrameHandler(MotionEvent):
         self.points[coords] = point
 
     def handle(self, frame, frame_count: int):
+        if self.handler.on_frame:
+            self.handler.on_frame(frame)
         contours = self.motion_detector.detect(frame)
         for contour in contours:
             self.handle_contour(contour, frame, frame_count)

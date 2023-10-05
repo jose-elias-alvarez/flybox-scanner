@@ -20,7 +20,8 @@ class GridComponent:
 
 
 class Item(GridComponent):
-    def __init__(self, rectangle: Rectangle, coords: Tuple[int, int]):
+    def __init__(self, rectangle: Rectangle, index: int, coords: Tuple[int, int]):
+        self.index = index
         self.bounds = rectangle
         self.coords = coords
 

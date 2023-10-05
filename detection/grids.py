@@ -185,11 +185,17 @@ class GridDetector:
             row.sort(key=lambda item: item[0][0])
 
         # convert each raw element into a class instance
-        # this is arguably not really necessary and is a good candidate for optimization
-        # (and a good argument against premature optimization)
+        total_rows = len(grid)
         for row_index, row in enumerate(grid):
             for col_index, item in enumerate(row):
-                row[col_index] = Item(item, (row_index, col_index))
+                # this is the index of each well in the output,
+                # meaning we go down each column, then over to the next row
+                index = col_index * total_rows + row_index
+                row[col_index] = Item(
+                    item,
+                    index,
+                    (row_index, col_index),
+                )
             grid[row_index] = Row(row)
         grid = Grid(grid)
 

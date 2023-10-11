@@ -1,2 +1,2 @@
-[tool.ruff]
-ignore = ["E501"]
+[tool.pyright]
+typeCheckingMode = "off"

@@ -1,5 +1,4 @@
 import queue
-import time
 import tkinter as tk
 import traceback
 from tkinter import messagebox

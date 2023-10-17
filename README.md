@@ -7,17 +7,28 @@ First, make sure [Anaconda](https://www.anaconda.com) is installed.
 Then, navigate to the project directory and run the following command:
 
 ```sh
-conda env create --file environment.yml
+conda env create --prefix .conda
+conda activate ./.conda
 ```
 
-This will create a new environment called `flybox-scanner` containing all the necessary dependencies.
+This will create a new environment in the current directory and activate it.
+
+You'll then need to install the project's dependencies:
+
+```sh
+conda install --file requirements.txt
+```
+
+### Direnv (optional)
+
+You can streamline activation by setting up [direnv](https://direnv.net/), which will automatically activate and deactivate the environment as needed.
 
 ### Start
 
-Activate the environment:
+If needed, activate the environment:
 
 ```sh
-conda activate flybox-scanner
+conda activate ./.conda
 ```
 
 Then, run the script:

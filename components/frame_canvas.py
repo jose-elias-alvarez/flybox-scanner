@@ -32,7 +32,10 @@ class FrameCanvas(StateCanvas):
         pil_image = Image.fromarray(rgb_image)
 
         self.image = ImageTk.PhotoImage(pil_image)
-        self.image_id = self.create_image(0, 0, anchor=tk.NW, image=self.image)
+        if self.image_id is None:
+            self.image_id = self.create_image(0, 0, anchor=tk.NW, image=self.image)
+        else:
+            self.itemconfig(self.image_id, image=self.image)
 
     def delete_frame(self):
         if self.image_id is None:

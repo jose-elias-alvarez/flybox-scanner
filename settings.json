@@ -1,1 +1,8 @@
-{}
+{
+  "motion": {
+    "history": 24000,
+    "kernel_size": 15,
+    "blur_size": 7,
+    "dist2_threshold": 600
+  }
+}

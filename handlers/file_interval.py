@@ -14,8 +14,8 @@ DEFAULT_INTERVAL = 60
 
 # output file options
 # see the make_row method for more info
-DATE_FORMAT = "%d-%b-%y"
-TIME_FORMAT = "%I:%M:%S"
+DATE_FORMAT = "%d %b %y"
+TIME_FORMAT = "%H:%M:00"
 DELIMITER = "\t"
 
 
@@ -71,14 +71,13 @@ class FileIntervalHandler(MotionEventHandler):
         row_parts = [
             self.index,
             self.last_flush.strftime(DATE_FORMAT),
-            self.format_time(self.last_flush),
+            self.last_flush.strftime(TIME_FORMAT),
             1,  # monitor status (always 1)
             1,  # monitor number (should be user-specified in the future)
             0,  # unused
             0,  # unused
-            0,  # unused
-            0,  # unused
             "Ct",  # ??
+            0,  # unused
             0,  # unused
         ]
 

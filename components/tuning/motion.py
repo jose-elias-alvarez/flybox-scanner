@@ -85,7 +85,7 @@ class TuneMotionFrame(tk.Frame):
         self.threshold_slider = tk.Scale(
             self,
             from_=10,
-            to=600,
+            to=1800,
             orient=tk.HORIZONTAL,
             command=self.motion_detector.update_dist2_threshold,
         )

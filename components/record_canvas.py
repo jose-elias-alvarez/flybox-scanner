@@ -51,6 +51,9 @@ class RecordCanvas(FrameCanvas):
                 self.frame, text="Hide", command=self.toggle_hide
             )
 
+        self.hidden_frame = tk.Frame(self.window)
+        tk.Label(self.hidden_frame, text="Hidden").grid()
+
         self.tuning_frame = None
         if self.window.tuning_mode == "motion":
             self.tuning_frame = TuneMotionFrame(
@@ -72,16 +75,15 @@ class RecordCanvas(FrameCanvas):
             self.hidden = False
             self.hide_button.config(text="Hide")
             self.config(width=self.window.width, height=self.window.height)
+            self.hidden_frame.grid_forget()
         else:
             self.hidden = True
             self.hide_button.config(text="Show")
             self.config(width=0, height=0)
+            # mount at window center
+            self.hidden_frame.grid(row=0, column=0)
 
     def resize_frame(self, frame):
-        # don't resize if hidden to avoid messing up canvas size
-        if self.hidden:
-            return frame
-
         try:
             border = self.window.app_state["border"]
             (x, y, w, h) = border

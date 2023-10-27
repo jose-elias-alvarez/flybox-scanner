@@ -44,7 +44,14 @@ class DebugHandler(MotionEventHandler):
             self.overlay = None
             self.on_frame = self.draw_indices
 
+    @property
+    def is_hidden(self):
+        return hasattr(self.window.canvas, "hidden") and self.window.canvas.hidden
+
     def draw_indices(self, frame):
+        if self.is_hidden:
+            return
+
         if self.overlay is None:
             self.overlay = np.zeros(frame.shape, dtype=np.uint8)
             for row in self.window.app_state["grid"].rows:
@@ -95,6 +102,9 @@ class DebugHandler(MotionEventHandler):
 
     def handle(self, event: MotionEvent):
         self.handler.handle(event)
+        if self.is_hidden:
+            return
+
         if SHOULD_DRAW_WELL:
             self.draw_well(event)
         if SHOULD_DRAW_FLY:

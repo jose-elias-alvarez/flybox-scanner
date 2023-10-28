@@ -31,16 +31,20 @@ class FrameCanvas(StateCanvas):
         rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(rgb_image)
 
-        self.image = ImageTk.PhotoImage(pil_image)
+        if self.image is None:
+            self.image = ImageTk.PhotoImage(pil_image)
+        else:
+            self.image.paste(pil_image)
+
         if self.image_id is None:
             self.image_id = self.create_image(0, 0, anchor=tk.NW, image=self.image)
         else:
             self.itemconfig(self.image_id, image=self.image)
 
     def delete_frame(self):
-        if self.image_id is None:
-            return
-        self.delete(self.image_id)
+        if self.image_id is not None:
+            self.delete(self.image_id)
+        self.image = None
         self.image_id = None
 
     def resize(self, width: int, height: int):

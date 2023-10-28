@@ -31,7 +31,11 @@ class FrameCanvas(StateCanvas):
         rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(rgb_image)
 
-        if self.image is None:
+        if (
+            self.image is None
+            or self.image.width() != pil_image.width
+            or self.image.height() != pil_image.height
+        ):
             self.image = ImageTk.PhotoImage(pil_image)
         else:
             self.image.paste(pil_image)

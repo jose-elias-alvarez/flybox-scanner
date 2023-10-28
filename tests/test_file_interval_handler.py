@@ -79,15 +79,6 @@ class TestFileInterval(unittest.TestCase):
 
         self.assertEqual(self.handler.distances[(0, 0)], 10)
 
-    def test_format_time(self):
-        # should format time according to format
-        dt = datetime.datetime(2022, 1, 1, 0, 0, 0)
-        self.assertEqual(self.handler.format_time(dt), "12:00:00")
-
-        # should remove leading 0 from hour
-        dt = datetime.datetime(2022, 1, 1, 1, 0, 0)
-        self.assertEqual(self.handler.format_time(dt), "1:00:00")
-
     def test_make_row(self):
         # should return a row string of metadata followed by distances
         self.handler.index = 1

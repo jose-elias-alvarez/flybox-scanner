@@ -61,12 +61,6 @@ class FileIntervalHandler(MotionEventHandler):
                 distances[item.coords] = 0
         return distances
 
-    def format_time(self, dt):
-        time_str = dt.strftime("%I:%M:%S")
-        if time_str[0] == "0":
-            return time_str[1:]
-        return time_str
-
     def make_row(self):
         row_parts = [
             self.index,

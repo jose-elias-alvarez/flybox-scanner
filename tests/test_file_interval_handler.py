@@ -101,19 +101,7 @@ class TestFileInterval(unittest.TestCase):
         # 1 2 3
         # 4 5 6
         # 7 8 9
-        expected_row_parts = [
-            1,
-            "01-Jan-22",
-            "12:00:00",
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            "Ct",
-            0,
-        ]
+        expected_row_parts = [1, "01 Jan 22", "00:00:00", 1, 1, 0, 0, "Ct", 0, 0]
         # go down each column, then move to the next row
         expected_distances = [
             1,

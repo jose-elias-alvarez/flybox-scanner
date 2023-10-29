@@ -1,12 +1,11 @@
-from typing import TYPE_CHECKING, Dict
+from tkinter import Grid
+from typing import Dict
 
 import cv2
 
 from custom_types.motion import MotionEvent, MotionEventHandler, MotionPoint
 from detection.motion import MotionDetector
-
-if TYPE_CHECKING:
-    from components.root_window import RootWindow
+from utils.app_settings import AppSettings
 
 # this class handles motion detected in frames and emits motion events
 # at the moment, this class only handles a single motion event per grid item per frame,
@@ -15,14 +14,10 @@ if TYPE_CHECKING:
 
 
 class FrameHandler(MotionEvent):
-    def __init__(self, window: "RootWindow", handler: MotionEventHandler):
-        self.window = window
-        try:
-            self.grid = self.window.app_state["grid"]
-        except KeyError:
-            raise Exception("Grid not initialized")
+    def __init__(self, grid: Grid, settings: AppSettings, handler: MotionEventHandler):
+        self.grid = grid
+        self.motion_detector = MotionDetector(settings)
         self.handler = handler
-        self.motion_detector = MotionDetector(window.settings)
 
         self.points: Dict[tuple, MotionPoint] = {}
         self.average = 0

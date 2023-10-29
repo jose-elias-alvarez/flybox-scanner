@@ -1,5 +1,6 @@
 import datetime
 import unittest
+from queue import SimpleQueue
 from threading import Timer
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -29,9 +30,15 @@ class TestFileInterval(unittest.TestCase):
         self.patcher = patch("builtins.open", self.mock_open)
         self.patcher.start()
 
-        mock_window = MagicMock()
-        mock_window.app_state = {"grid": self.make_mock_grid()}
-        self.handler = FileIntervalHandler(mock_window, self.output_path)
+        self.cleanup_queue = SimpleQueue()
+        self.error_queue = SimpleQueue()
+        self.grid = self.make_mock_grid()
+        self.handler = FileIntervalHandler(
+            self.grid,
+            self.output_path,
+            cleanup_queue=self.cleanup_queue,
+            error_queue=self.error_queue,
+        )
 
         # replace with mock to be safe,
         # since real timers are potentially nasty
@@ -49,6 +56,7 @@ class TestFileInterval(unittest.TestCase):
         self.assertEqual(self.handler.interval, DEFAULT_INTERVAL)
         self.assertEqual(self.handler.index, 0)
         self.assertLessEqual(self.handler.last_flush, datetime.datetime.now())
+        self.assertEqual(self.cleanup_queue.qsize(), 1)
 
         # should set distances from grid dimensions, initialized to 0
         expected_distances = {
@@ -137,6 +145,16 @@ class TestFileInterval(unittest.TestCase):
         self.handler.start.assert_called_once()
         # should be reset back to 0
         self.assertEqual(self.handler.distances[(0, 0)], 0)
+
+    def test_flush_error(self):
+        self.handler.write_data = MagicMock(side_effect=Exception)
+        self.handler.start = MagicMock()
+
+        self.handler.flush()
+        self.handler.flush()
+        self.handler.flush()
+
+        self.assertEqual(self.error_queue.qsize(), 3)
 
     # do *not* use real timers unless you hate yourself
     @patch.object(Timer, "start")

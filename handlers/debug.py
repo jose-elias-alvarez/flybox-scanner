@@ -1,13 +1,11 @@
-from typing import TYPE_CHECKING
+from tkinter import Grid
+from typing import Callable
 
 import cv2
 import numpy as np
 
 from custom_types.motion import MotionEventHandler
 from handlers.frame import MotionEvent
-
-if TYPE_CHECKING:
-    from components.root_window import RootWindow
 
 # this class wraps a motion event handler to add debug info
 # at the moment, we're using it to show the detected fly and well
@@ -36,25 +34,24 @@ SHOULD_PRINT = False  # this is really noisy, so it's disabled by default
 
 
 class DebugHandler(MotionEventHandler):
-    def __init__(self, window: "RootWindow", handler: MotionEventHandler):
-        self.window = window
+    def __init__(
+        self, grid: Grid, handler: MotionEventHandler, is_visible: Callable[[], bool]
+    ):
+        self.grid = grid
         self.handler = handler
+        self.is_visible = is_visible
 
         if SHOULD_DRAW_INDICES:
             self.overlay = None
             self.on_frame = self.draw_indices
 
-    @property
-    def is_hidden(self):
-        return hasattr(self.window.canvas, "hidden") and self.window.canvas.hidden
-
     def draw_indices(self, frame):
-        if self.is_hidden:
+        if not self.is_visible():
             return
 
         if self.overlay is None:
             self.overlay = np.zeros(frame.shape, dtype=np.uint8)
-            for row in self.window.app_state["grid"].rows:
+            for row in self.grid.rows:
                 for item in row.items:
                     cv2.putText(
                         self.overlay,
@@ -102,7 +99,7 @@ class DebugHandler(MotionEventHandler):
 
     def handle(self, event: MotionEvent):
         self.handler.handle(event)
-        if self.is_hidden:
+        if not self.is_visible():
             return
 
         if SHOULD_DRAW_WELL:

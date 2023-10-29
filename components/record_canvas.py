@@ -21,6 +21,11 @@ class RecordCanvas(FrameCanvas):
         self.filename = None
         self.output_path = None
 
+        try:
+            grid = window.app_state["grid"]
+        except KeyError:
+            raise Exception("Grid not initialized")
+
         if window.tuning_mode == "motion":
             handler = MotionEventHandler()
         else:
@@ -29,11 +34,15 @@ class RecordCanvas(FrameCanvas):
             ) or filedialog.asksaveasfilename(defaultextension=".txt")
             if self.filename == "":
                 raise ValueError("No output file selected")
-            handler = FileIntervalHandler(window, self.filename)
+            handler = FileIntervalHandler(
+                grid,
+                self.filename,
+                cleanup_queue=window.cleanup,
+                error_queue=window.errors,
+            )
             handler.start()
-
-        wrapped_handler = DebugHandler(window, handler)
-        self.frame_handler = FrameHandler(window, wrapped_handler)
+        wrapped_handler = DebugHandler(grid, handler, lambda: not self.hidden)
+        self.frame_handler = FrameHandler(grid, window.settings, wrapped_handler)
 
         self.frame = tk.Frame(self.window)
         self.path_label = None

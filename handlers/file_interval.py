@@ -1,11 +1,8 @@
 import datetime
 from threading import Timer
-from typing import TYPE_CHECKING
+from tkinter import Grid
 
 from custom_types.motion import MotionEvent, MotionEventHandler
-
-if TYPE_CHECKING:
-    from components.root_window import RootWindow
 
 # this class handles motion events and flushes them to the specified file at the specified interval
 
@@ -21,14 +18,19 @@ DELIMITER = "\t"
 
 # captures motion events and flushes them to the specified file at the specified interval
 class FileIntervalHandler(MotionEventHandler):
-    def __init__(self, window: "RootWindow", filename: str, interval=DEFAULT_INTERVAL):
-        self.window = window
+    def __init__(
+        self,
+        grid: Grid,
+        filename: str,
+        cleanup_queue=None,
+        error_queue=None,
+        interval=DEFAULT_INTERVAL,
+    ):
         self.timer = None
-        self.window.cleanup.put(self.cancel)
-        try:
-            self.grid = self.window.app_state["grid"]
-        except KeyError:
-            raise Exception("Grid not initialized")
+        self.grid = grid
+        self.error_queue = error_queue
+        if cleanup_queue is not None:
+            cleanup_queue.put(self.cancel)
 
         self.distances = self.make_distances()
         self.max_x = max(key[0] for key in self.distances)
@@ -100,6 +102,7 @@ class FileIntervalHandler(MotionEventHandler):
             self.start()
         except Exception as e:
             # since we're running in a thread, we add them to the queue to be handled on the next loop
-            self.window.errors.put(e)
+            if self.error_queue is not None:
+                self.error_queue.put(e)
 
         self.distances = self.make_distances()

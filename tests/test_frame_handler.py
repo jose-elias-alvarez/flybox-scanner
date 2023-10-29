@@ -9,9 +9,10 @@ from utils.app_settings import AppSettings
 
 class TestFrameHandler(unittest.TestCase):
     def setUp(self):
-        self.window = MagicMock(settings=AppSettings(keep_defaults=True))
+        self.grid = MagicMock()
+        self.settings = AppSettings(keep_defaults=True)
         self.handler = MagicMock()
-        self.frame_handler = FrameHandler(self.window, self.handler)
+        self.frame_handler = FrameHandler(self.grid, self.settings, self.handler)
 
     def test_handle(self):
         for i in range(20):

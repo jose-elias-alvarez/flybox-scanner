@@ -56,17 +56,18 @@ class AppSettings:
     default_settings_file = "default_settings.json"
     settings_file = "settings.json"
 
-    def __init__(self):
+    def __init__(self, keep_defaults=False):
         # first, load default settings from default_settings.json
         with open(self.default_settings_file, "r") as default_settings_file:
             self.settings = json.load(default_settings_file)
-        # then, check if settings.json exists and merge with defaults
-        try:
-            with open(self.settings_file, "r") as settings_file:
-                overrides = json.load(settings_file)
-                self.settings = merge_json(self.settings, overrides)
-        except FileNotFoundError:
-            pass
+        if not keep_defaults:
+            # then, check if settings.json exists and merge with defaults
+            try:
+                with open(self.settings_file, "r") as settings_file:
+                    overrides = json.load(settings_file)
+                    self.settings = merge_json(self.settings, overrides)
+            except FileNotFoundError:
+                pass
 
     def __str__(self):
         return json.dumps(self.settings, indent=2)

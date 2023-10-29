@@ -22,7 +22,7 @@ class FrameHandler(MotionEvent):
         except KeyError:
             raise Exception("Grid not initialized")
         self.handler = handler
-        self.motion_detector = MotionDetector(window)
+        self.motion_detector = MotionDetector(window.settings)
 
         self.points: Dict[tuple, MotionPoint] = {}
         self.average = 0

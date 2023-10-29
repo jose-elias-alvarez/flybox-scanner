@@ -1,10 +1,7 @@
-from typing import TYPE_CHECKING
-
 import cv2
 import numpy as np
 
-if TYPE_CHECKING:
-    from components.root_window import RootWindow
+from utils.app_settings import AppSettings
 
 # this class is responsible for detecting motion in a frame
 # it supports two methods:
@@ -13,19 +10,19 @@ if TYPE_CHECKING:
 
 
 class MotionDetector:
-    def __init__(self, window: "RootWindow"):
-        self.window = window
+    def __init__(self, settings: AppSettings):
+        self.settings = settings
         self.last_frame = None
 
         # keep these hardcoded for now
         self.method = "BG_SUBTRACTOR"
         self.operation = cv2.MORPH_CLOSE
 
-        self.kernel_size = self.window.settings.get("motion.kernel_size")
-        self.blur_size = self.window.settings.get("motion.blur_size")
-        self.history = self.window.settings.get("motion.history")
-        self.dist2_threshold = self.window.settings.get("motion.dist2_threshold")
-        self.diff_threshold = self.window.settings.get("motion.diff_threshold")
+        self.kernel_size = self.settings.get("motion.kernel_size")
+        self.blur_size = self.settings.get("motion.blur_size")
+        self.history = self.settings.get("motion.history")
+        self.dist2_threshold = self.settings.get("motion.dist2_threshold")
+        self.diff_threshold = self.settings.get("motion.diff_threshold")
 
         self.kernel = np.ones((self.kernel_size, self.kernel_size), np.uint8)
         self.bg_subtractor = cv2.createBackgroundSubtractorKNN(
@@ -109,8 +106,8 @@ class MotionDetector:
         )
 
     def save_settings(self):
-        self.window.settings.set("motion.kernel_size", self.kernel_size)
-        self.window.settings.set("motion.blur_size", self.blur_size)
-        self.window.settings.set("motion.history", self.history)
-        self.window.settings.set("motion.dist2_threshold", self.dist2_threshold)
-        self.window.settings.save()
+        self.settings.set("motion.kernel_size", self.kernel_size)
+        self.settings.set("motion.blur_size", self.blur_size)
+        self.settings.set("motion.history", self.history)
+        self.settings.set("motion.dist2_threshold", self.dist2_threshold)
+        self.settings.save()

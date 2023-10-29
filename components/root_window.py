@@ -14,9 +14,11 @@ from utils.get_webcams import get_webcams
 
 
 class RootWindow(tk.Tk):
-    def __init__(self):
+    def __init__(self, args=None):
         super().__init__()
-        self.settings = AppSettings()
+        self.args = args if args is not None else arg_parser()
+        self.settings = AppSettings(keep_defaults=self.args.keep_defaults)
+        self.tuning_mode = self.args.tuning
 
         self.source = None
         self.cap = None
@@ -25,9 +27,6 @@ class RootWindow(tk.Tk):
             source = get_webcams(first_available=True)[0]
         self.set_source(source)
         self.frame_delay = self.settings.get("video.frame_delay")
-
-        self.args = arg_parser()
-        self.tuning_mode = self.args.tuning
 
         self.title(self.settings.get("window.title"))
         self.width = self.settings.get("window.width")
@@ -119,9 +118,10 @@ class RootWindow(tk.Tk):
         self.mainloop()
 
     def handle_exception(self, exctype, value, trace):
-        # TODO: add file logging
-        traceback.print_exception(exctype, value, trace)
-        # for now, show message box and quit, since these are unhandled
-        messagebox.showerror("Error", value)
+        if not self.args.get("silent", False):
+            # TODO: add file logging
+            traceback.print_exception(exctype, value, trace)
+            # for now, show message box and quit, since these are unhandled
+            messagebox.showerror("Error", value)
         self.on_close()
         self.quit()

@@ -39,6 +39,7 @@ class RecordCanvas(FrameCanvas):
                 self.filename,
                 cleanup_queue=window.cleanup,
                 error_queue=window.errors,
+                interval=window.settings.get("recording.interval"),
             )
             handler.start()
         wrapped_handler = DebugHandler(grid, handler, lambda: not self.hidden)

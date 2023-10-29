@@ -52,6 +52,7 @@ class AppSettings:
     env_overrides = {
         "video.source": "SOURCE",
         "recording.output_file": "OUTPUT_FILE",
+        "recording.interval": "INTERVAL",
     }
     default_settings_file = "default_settings.json"
     settings_file = "settings.json"

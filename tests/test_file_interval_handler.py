@@ -4,13 +4,14 @@ from queue import SimpleQueue
 from threading import Timer
 from unittest.mock import MagicMock, mock_open, patch
 
-from handlers.file_interval import DEFAULT_INTERVAL, DELIMITER, FileIntervalHandler
+from handlers.file_interval import DELIMITER, FileIntervalHandler
 
 
 class TestFileInterval(unittest.TestCase):
     output_path = "tests/fixtures/test_output.txt"
     mock_grid_x = 3
     mock_grid_y = 3
+    interval = 10
 
     def make_mock_grid(self):
         mock_grid = MagicMock()
@@ -36,6 +37,7 @@ class TestFileInterval(unittest.TestCase):
         self.handler = FileIntervalHandler(
             self.grid,
             self.output_path,
+            interval=self.interval,
             cleanup_queue=self.cleanup_queue,
             error_queue=self.error_queue,
         )
@@ -53,7 +55,7 @@ class TestFileInterval(unittest.TestCase):
         # should set default values
         self.assertEqual(self.handler.timer, None)
         self.assertEqual(self.handler.filename, self.output_path)
-        self.assertEqual(self.handler.interval, DEFAULT_INTERVAL)
+        self.assertEqual(self.handler.interval, self.interval)
         self.assertEqual(self.handler.index, 0)
         self.assertLessEqual(self.handler.last_flush, datetime.datetime.now())
         self.assertEqual(self.cleanup_queue.qsize(), 1)

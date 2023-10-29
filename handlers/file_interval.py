@@ -6,9 +6,6 @@ from custom_types.motion import MotionEvent, MotionEventHandler
 
 # this class handles motion events and flushes them to the specified file at the specified interval
 
-# 60 is the canonical interval, but you may want to lower this for testing
-DEFAULT_INTERVAL = 60
-
 # output file options
 # see the make_row method for more info
 DATE_FORMAT = "%d %b %y"
@@ -22,9 +19,9 @@ class FileIntervalHandler(MotionEventHandler):
         self,
         grid: Grid,
         filename: str,
+        interval,
         cleanup_queue=None,
         error_queue=None,
-        interval=DEFAULT_INTERVAL,
     ):
         self.timer = None
         self.grid = grid
@@ -37,7 +34,8 @@ class FileIntervalHandler(MotionEventHandler):
         self.max_y = max(key[1] for key in self.distances)
 
         self.filename = filename
-        self.interval = interval
+        # TODO: move to schema in app settings
+        self.interval = int(interval)
         self.index = 0
         self.last_flush = datetime.datetime.now()
 

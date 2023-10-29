@@ -10,7 +10,8 @@
     "frame_delay": 30
   },
   "recording": {
-    "output_file": null
+    "output_file": null,
+    "interval": 60
   },
   "motion": {
     "history": 12000,

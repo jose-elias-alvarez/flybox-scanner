@@ -4,10 +4,10 @@
 
 First, make sure [Anaconda](https://www.anaconda.com) is installed.
 
-Then, navigate to the project directory and run the following command:
+Then, navigate to the project directory and run the following commands:
 
 ```sh
-conda env create --prefix .conda
+conda create --prefix .conda python=3.11
 conda activate ./.conda
 ```
 

@@ -15,7 +15,7 @@ class TestMotionDetector(unittest.TestCase):
         # feed 20 real frames to the subtractor to build a model
         for i in range(20):
             frame = cv2.imread(f"tests/fixtures/frames/{i + 1}.jpg")
-            self.detector.get_bg_mask(frame)
+            self.detector.detect_with_bg_subtractor(frame)
 
         contours = self.detector.detect_with_bg_subtractor(frame)
         self.assertEqual(len(contours), 39)

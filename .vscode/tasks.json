@@ -49,7 +49,7 @@
       "id": "video",
       "type": "pickString",
       "description": "Select video to scan",
-      "options": ["Fly", "DoubleFly"],
+      "options": ["Fly", "DoubleFly", "LightSwitch"],
       "default": "Fly"
     }
   ]

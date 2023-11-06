@@ -2,4 +2,4 @@ __pycache__
 .conda/
 
 videos/
-./settings.json
+settings.json

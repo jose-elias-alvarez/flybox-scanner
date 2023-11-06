@@ -16,4 +16,5 @@ def arg_parser():
     parser.add_argument("--keep-defaults", help="Keep defaults", type=bool)
     parser.add_argument("--silent", help="Silent", type=bool)
 
-    return parser.parse_args()
+    # return as dict
+    return vars(parser.parse_args())

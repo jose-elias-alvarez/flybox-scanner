@@ -17,8 +17,8 @@ class RootWindow(tk.Tk):
     def __init__(self, args=None):
         super().__init__()
         self.args = args if args is not None else arg_parser()
-        self.settings = AppSettings(keep_defaults=self.args.keep_defaults)
-        self.tuning_mode = self.args.tuning
+        self.settings = AppSettings(keep_defaults=self.args.get("keep_defaults", False))
+        self.tuning_mode = self.args.get("tuning", None)
 
         self.source = None
         self.cap = None

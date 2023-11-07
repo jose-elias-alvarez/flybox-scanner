@@ -1,8 +1,8 @@
-from tkinter import Grid
 from typing import Dict
 
 import cv2
 
+from custom_types.grid import Grid
 from custom_types.motion import MotionEvent, MotionEventHandler, MotionPoint
 from detection.motion import MotionDetector
 from utils.app_settings import AppSettings

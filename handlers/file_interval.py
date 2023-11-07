@@ -1,7 +1,7 @@
 import datetime
 from threading import Timer
-from tkinter import Grid
 
+from custom_types.grid import Grid
 from custom_types.motion import MotionEvent, MotionEventHandler
 
 # this class handles motion events and flushes them to the specified file at the specified interval

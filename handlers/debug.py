@@ -1,9 +1,9 @@
-from tkinter import Grid
 from typing import Callable
 
 import cv2
 import numpy as np
 
+from custom_types.grid import Grid
 from custom_types.motion import MotionEventHandler
 from handlers.frame import MotionEvent
 

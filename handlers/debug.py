@@ -1,5 +1,3 @@
-from typing import Callable
-
 import cv2
 import numpy as np
 
@@ -12,41 +10,47 @@ from handlers.frame import MotionEvent
 # this doesn't really cause as much slowdown as you'd imagine
 # and if performance is important, we can hide the video altogether
 
-SHOULD_DRAW_WELL = False
 WELL_COLOR = (0, 255, 0)  # CV2 uses BGR because it hates you
 WELL_THICKNESS = 1
 
-SHOULD_DRAW_FLY = True
 FLY_COLOR = (255, 0, 0)
 FLY_THICKNESS = 2
 LAST_FLY_COLOR = (128, 128, 128)
 LAST_FLY_THICKNESS = 1
 
-SHOULD_DRAW_DISTANCE = True
 DISTANCE_COLOR = (0, 0, 255)
 DISTANCE_THICKNESS = 1
 
-SHOULD_DRAW_INDICES = True
 INDEX_THICKNESS = 0.5
 INDEX_COLOR = (255, 255, 255)
 
-SHOULD_PRINT = False  # this is really noisy, so it's disabled by default
+
+class DebugOptions:
+    def __init__(self):
+        self.draw_index = True
+        self.draw_fly = True
+        self.draw_distance = True
+
+        self.hidden = False  # hides everything
+        self.draw_well = False
+        self.print_events = False
+
+    def toggle(self, option):
+        setattr(self, option, not getattr(self, option))
 
 
 class DebugHandler(MotionEventHandler):
-    def __init__(
-        self, grid: Grid, handler: MotionEventHandler, is_visible: Callable[[], bool]
-    ):
+    def __init__(self, grid: Grid, handler: MotionEventHandler):
         self.grid = grid
         self.handler = handler
-        self.is_visible = is_visible
+        self.options = DebugOptions()
 
-        if SHOULD_DRAW_INDICES:
+        if self.options.draw_index:
             self.overlay = None
             self.on_frame = self.draw_indices
 
     def draw_indices(self, frame):
-        if not self.is_visible():
+        if not self.options.draw_index:
             return
 
         if self.overlay is None:
@@ -99,14 +103,14 @@ class DebugHandler(MotionEventHandler):
 
     def handle(self, event: MotionEvent):
         self.handler.handle(event)
-        if not self.is_visible():
+        if self.options.hidden:
             return
 
-        if SHOULD_DRAW_WELL:
+        if self.options.draw_well:
             self.draw_well(event)
-        if SHOULD_DRAW_FLY:
+        if self.options.draw_fly:
             self.draw_fly(event)
-        if SHOULD_DRAW_DISTANCE:
+        if self.options.draw_distance:
             self.draw_distance(event)
-        if SHOULD_PRINT:
+        if self.options.print_events:
             print(event)

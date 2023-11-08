@@ -95,8 +95,8 @@ class TuneMotionFrame(tk.Frame):
             self, text="Save", command=self.motion_detector.save_settings
         )
 
-    def layout(self):
-        self.grid(row=2, column=0)
+    def layout(self, row):
+        self.grid(row=row, column=0)
         self.kernel_size_label.grid(row=0, column=0)
         self.kernel_size_slider.grid(row=0, column=1)
         self.blur_label.grid(row=0, column=2)

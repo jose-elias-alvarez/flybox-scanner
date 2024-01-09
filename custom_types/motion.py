@@ -18,17 +18,13 @@ class MotionPoint:
 
 class MotionEvent:
     def __init__(
-        self,
-        point: MotionPoint,
-        last_point: MotionPoint,
-        item: Item,
-        frame,
+        self, point: MotionPoint, last_point: MotionPoint, item: Item, frame, raw_frame
     ):
         self.point = point
         self.last_point = last_point
         self.item = item
         self.frame = frame
-        self.raw_frame = frame.copy()
+        self.raw_frame = raw_frame
         self.distance = point.distance_to(last_point)
 
 

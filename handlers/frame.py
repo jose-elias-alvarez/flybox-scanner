@@ -29,7 +29,7 @@ class FrameHandler(MotionEvent):
             return
         return row.find_item(bounds)
 
-    def handle_contour(self, contour, frame, frame_count: int):
+    def handle_contour(self, contour, frame, raw_frame, frame_count: int):
         item = self.find_item(contour)
         if item is None:
             return
@@ -52,6 +52,7 @@ class FrameHandler(MotionEvent):
             last_point=last_point,
             item=item,
             frame=frame,
+            raw_frame=raw_frame,
         )
         self.handler.handle(event)
 
@@ -59,8 +60,9 @@ class FrameHandler(MotionEvent):
 
     def handle(self, frame, frame_count: int):
         contours = self.motion_detector.detect(frame)
+        raw_frame = frame.copy()
         for contour in contours:
-            self.handle_contour(contour, frame, frame_count)
+            self.handle_contour(contour, frame, raw_frame, frame_count)
         # HACK: move this after contour detection so that changes to the frame don't affect detection
         # the fact that the same frame is used for detection *and* display is itself bad,
         # but this works for now

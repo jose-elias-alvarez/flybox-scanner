@@ -32,7 +32,7 @@ class FileIntervalHandler(MotionEventHandler):
         self.error_queue = error_queue
         if cleanup_queue is not None:
             cleanup_queue.put(self.cancel)
-        self.last_frame = None
+        self.raw_frame = None
 
         self.distances = self.make_distances()
         self.max_x = max(key[0] for key in self.distances)
@@ -63,7 +63,7 @@ class FileIntervalHandler(MotionEventHandler):
     def handle(self, event: MotionEvent):
         self.distances[event.item.coords] += event.distance
         if self.record_images:
-            self.last_frame = event.raw_frame
+            self.raw_frame = event.raw_frame
 
     def make_distances(self):
         distances = {}
@@ -105,7 +105,7 @@ class FileIntervalHandler(MotionEventHandler):
         if self.record_images:
             timestamp = self.last_flush.strftime("%Y%m%d%H%M%S")
             cv2.imwrite(
-                os.path.join(self.frames_dir, f"{timestamp}.jpg"), self.last_frame
+                os.path.join(self.frames_dir, f"{timestamp}.jpg"), self.raw_frame
             )
 
     def flush(self):

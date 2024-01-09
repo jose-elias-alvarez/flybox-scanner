@@ -60,6 +60,8 @@ class FrameHandler(MotionEvent):
 
     def handle(self, frame, frame_count: int):
         contours = self.motion_detector.detect(frame)
+        # this is a copy of the original frame used for image recording
+        # don't modify it!
         raw_frame = frame.copy()
         for contour in contours:
             self.handle_contour(contour, frame, raw_frame, frame_count)

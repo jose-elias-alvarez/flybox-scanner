@@ -28,6 +28,7 @@ class MotionEvent:
         self.last_point = last_point
         self.item = item
         self.frame = frame
+        self.raw_frame = frame.copy()
         self.distance = point.distance_to(last_point)
 
 

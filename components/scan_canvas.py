@@ -25,6 +25,7 @@ class ScanCanvas(FrameCanvas):
         def start_recording():
             # only set grid here now that it's confirmed
             self.window.app_state["grid"] = self.grid
+            self.window.app_state["record_images"] = self.record_images.get()
             self.window.state_manager.record()
 
         self.button_frame = tk.Frame()
@@ -39,6 +40,13 @@ class ScanCanvas(FrameCanvas):
         self.cancel_button = tk.Button(
             self.button_frame, text="Cancel", command=self.window.state_manager.idle
         )
+        self.record_images = tk.BooleanVar()
+        self.record_images.set(False)
+        self.record_images_checkbox = tk.Checkbutton(
+            self.button_frame,
+            text="Record images",
+            variable=self.record_images,
+        )
 
         self.detect_grid()
         if window.tuning_mode == "motion":
@@ -51,6 +59,7 @@ class ScanCanvas(FrameCanvas):
         self.rescan_button.grid(row=0, column=0)
         self.record_button.grid(row=0, column=1)
         self.cancel_button.grid(row=0, column=2)
+        self.record_images_checkbox.grid(row=1, column=0, columnspan=3)
 
     def get_frame(self):
         frame, frame_count = super().get_frame()

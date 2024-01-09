@@ -1,5 +1,8 @@
 import datetime
+import os
 from threading import Timer
+
+import cv2
 
 from custom_types.grid import Grid
 from custom_types.motion import MotionEvent, MotionEventHandler
@@ -22,18 +25,24 @@ class FileIntervalHandler(MotionEventHandler):
         interval,
         cleanup_queue=None,
         error_queue=None,
+        record_images=False,
     ):
         self.timer = None
         self.grid = grid
         self.error_queue = error_queue
         if cleanup_queue is not None:
             cleanup_queue.put(self.cancel)
+        self.last_frame = None
 
         self.distances = self.make_distances()
         self.max_x = max(key[0] for key in self.distances)
         self.max_y = max(key[1] for key in self.distances)
 
         self.filename = filename
+        self.record_images = record_images
+        if self.record_images:
+            self.frames_dir = os.path.join(os.path.dirname(filename), "frames")
+            os.makedirs(self.frames_dir, exist_ok=True)
         # TODO: move to schema in app settings
         self.interval = int(interval)
         self.index = 0
@@ -53,6 +62,8 @@ class FileIntervalHandler(MotionEventHandler):
 
     def handle(self, event: MotionEvent):
         self.distances[event.item.coords] += event.distance
+        if self.record_images:
+            self.last_frame = event.raw_frame
 
     def make_distances(self):
         distances = {}
@@ -91,6 +102,11 @@ class FileIntervalHandler(MotionEventHandler):
         row = self.make_row()
         with open(self.filename, "a") as f:
             f.write(row + "\n")
+        if self.record_images:
+            timestamp = self.last_flush.strftime("%Y%m%d%H%M%S")
+            cv2.imwrite(
+                os.path.join(self.frames_dir, f"{timestamp}.jpg"), self.last_frame
+            )
 
     def flush(self):
         self.index += 1

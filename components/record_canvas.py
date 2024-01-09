@@ -42,6 +42,7 @@ class RecordCanvas(FrameCanvas):
                 cleanup_queue=window.cleanup,
                 error_queue=window.errors,
                 interval=window.settings.get("recording.interval"),
+                record_images=window.app_state.get("record_images"),
             )
             handler.start()
         # wrap with debug handler to enable visualization
